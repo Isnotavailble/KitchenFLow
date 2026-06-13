@@ -18,7 +18,7 @@ public class OrderEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity userEntity;
-
+    //waiting,cooking,complete [can only cancel while waiting]
     @Column(name = "status", nullable = false)
     private String status;
 
@@ -32,8 +32,8 @@ public class OrderEntity {
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
-    @Column(name = "resolved_at", nullable = false)
+    //complete timestamp
+    @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "orderEntity", orphanRemoval = true, cascade = CascadeType.ALL)

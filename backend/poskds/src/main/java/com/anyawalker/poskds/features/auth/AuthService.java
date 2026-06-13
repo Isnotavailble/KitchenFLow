@@ -23,7 +23,12 @@ public class AuthService {
             return null;
         //generate new token
         TokenResponse tokenResponse = tokenService.generateTokens(userEntity);
-        return new LoginResponse(userEntity.getUsername(), userEntity.getEmail(), userEntity.getRole(),tokenResponse);
+        return new LoginResponse(
+                userEntity.getId(),
+                userEntity.getUsername(),
+                userEntity.getEmail(),
+                userEntity.getRole(),
+                tokenResponse);
     }
 
     public TokenResponse doRefreshToken(String refreshToken){

@@ -46,7 +46,7 @@ public class TokenService {
         tokenEntity.setUser(userEntity);
         tokenEntity.setAccessToken(accessToken);
         tokenEntity.setCreatedAt(LocalDateTime.now());
-        tokenEntity.setExpiresAt(LocalDateTime.now().plusMinutes(5));
+        tokenEntity.setExpiresAt(LocalDateTime.now().plusHours(1));
 
         // Save session (UUID generated automatically by JPA)
         TokenEntity savedTokenEntity = tokenRepo.save(tokenEntity);
@@ -93,7 +93,7 @@ public class TokenService {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("poskds-backend")
                 .issuedAt(now)
-                .expiresAt(now.plus(2, ChronoUnit.MINUTES))
+                .expiresAt(now.plus(15, ChronoUnit.MINUTES))
                 .subject(userEntity.getEmail())
                 .claim("userId", userEntity.getId())
                 // we need to remove the prefix because jwtAuthoritiesConverter will generate the converter on fly

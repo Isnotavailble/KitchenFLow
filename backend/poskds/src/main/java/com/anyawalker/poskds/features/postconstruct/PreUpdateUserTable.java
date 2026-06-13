@@ -5,6 +5,7 @@ import com.anyawalker.poskds.repos.UserRepo;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ public class PreUpdateUserTable {
         this.passwordEncoder = passwordEncoder;
         this.userRepo = userRepo;
     }
+
     @PostConstruct
     public void doInit(){
         log.info("Start Post construct on user table");
