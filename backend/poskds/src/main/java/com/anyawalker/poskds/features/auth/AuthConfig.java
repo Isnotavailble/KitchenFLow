@@ -46,9 +46,8 @@ public class AuthConfig {
                         .requestMatchers("/api/auth/**")
                         .permitAll()
 
-                        .requestMatchers("/api/cashier/**")
-                        .access(new WebExpressionAuthorizationManager("hasAuthority('ROLE_CASHIER') or hasAuthority('ROLE_ADMIN')"))
-
+                        .requestMatchers("/api/orders/**")
+                        .hasAnyAuthority("ROlE_CASHIER","ROLE_ADMIN","ROLE_CHEF")
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

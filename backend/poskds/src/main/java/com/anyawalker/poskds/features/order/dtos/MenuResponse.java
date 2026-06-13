@@ -6,6 +6,7 @@ public record MenuResponse(
     Long id,
     String name,
     int currentPrice,
+    String cookingDuration,
     String categoryName,
     boolean isAvailable,
     LocalDateTime createdAt,

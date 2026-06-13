@@ -55,7 +55,18 @@ Endpoints mapped to `/api/chef/**` enabling kitchen display terminals to display
 
 ---
 
-## ⚙️ 5. Admin Panel API
+## 🔄 5. Real-Time Synchronization Engine
+*Status: Planned / Next Phase*
+
+A lightweight, high-performance real-time synchronization engine using Spring Boot asynchronous processing.
+
+* **Non-Blocking Long Polling:** Utilizes Spring's `DeferredResult` to hold client update requests open without blocking Tomcat servlet threads. This avoids the protocol and connection management overhead of WebSockets.
+* **Order Status Sync:** Instantly syncs the cashier's order tracker when a chef changes status (`cooking`, `complete`, `cancel`), and updates the kitchen queue immediately when a cashier places a new order.
+* **Menu Availability Sync:** Instantly updates the cashier's active ordering menu when the chef toggles a menu item's availability (`isAvailable = false/true`) in the kitchen.
+
+---
+
+## ⚙️ 6. Admin Panel API
 *Status: Not Planned Yet (Future Backlog)*
 
 Management endpoints mapped to `/api/admin/**` for restaurant owners/administrators.

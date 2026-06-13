@@ -27,6 +27,10 @@ public class MenuEntity {
     @Column(name = "is_available", nullable = false)
     private boolean isAvailable;
 
+    //fast,medium,heavy
+    @Column(name = "cooking_duration", length = 60)
+    private String cookingDuration;
+
     @CreatedDate
     @Column(name ="created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -42,7 +46,15 @@ public class MenuEntity {
     public MenuEntity() {}
 
     // Parameterized Constructor
-    public MenuEntity(String name, int currentPrice, String categoryName, boolean isAvailable, LocalDateTime createdAt, LocalDateTime updatedAt, List<OrderItemEntity> orderItemEntityList) {
+    public MenuEntity(String name,
+                      int currentPrice,
+                      String categoryName,
+                      boolean isAvailable,
+                      LocalDateTime createdAt,
+                      LocalDateTime updatedAt,
+                      List<OrderItemEntity> orderItemEntityList,
+                      String cookingDuration
+    ) {
         this.name = name;
         this.currentPrice = currentPrice;
         this.categoryName = categoryName;
@@ -50,9 +62,17 @@ public class MenuEntity {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.orderItemEntityList = orderItemEntityList;
+        this.cookingDuration = cookingDuration;
     }
 
     // Getters and Setters
+    public String getCookingDuration(){
+        return this.cookingDuration;
+    }
+    public void setCookingDuration(String type){
+        this.cookingDuration = type;
+    }
+
     public Long getId() {
         return id;
     }

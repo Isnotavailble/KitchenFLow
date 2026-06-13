@@ -30,6 +30,7 @@ public class PreUpdateMenuTable {
             shanKhaukSwew.setCategoryName("Noodles");
             shanKhaukSwew.setCurrentPrice(3000);
             shanKhaukSwew.setAvailable(true);
+            shanKhaukSwew.setCookingDuration("medium");
             menuRepo.save(shanKhaukSwew);
 
             MenuEntity moteHinGar = new MenuEntity();
@@ -37,6 +38,7 @@ public class PreUpdateMenuTable {
             moteHinGar.setCategoryName("Noodles");
             moteHinGar.setCurrentPrice(2500);
             moteHinGar.setAvailable(true);
+            moteHinGar.setCookingDuration("fast");
             menuRepo.save(moteHinGar);
 
             MenuEntity lahpetThoke = new MenuEntity();
@@ -44,6 +46,7 @@ public class PreUpdateMenuTable {
             lahpetThoke.setCategoryName("Salad");
             lahpetThoke.setCurrentPrice(2000);
             lahpetThoke.setAvailable(true);
+            lahpetThoke.setCookingDuration("fast");
             menuRepo.save(lahpetThoke);
 
             MenuEntity tofuKyaw = new MenuEntity();
@@ -51,6 +54,7 @@ public class PreUpdateMenuTable {
             tofuKyaw.setCategoryName("Snack");
             tofuKyaw.setCurrentPrice(1500);
             tofuKyaw.setAvailable(true);
+            tofuKyaw.setCookingDuration("medium");
             menuRepo.save(tofuKyaw);
 
             MenuEntity ohnNoKhaukSwew = new MenuEntity();
@@ -58,6 +62,7 @@ public class PreUpdateMenuTable {
             ohnNoKhaukSwew.setCategoryName("Noodles");
             ohnNoKhaukSwew.setCurrentPrice(3500);
             ohnNoKhaukSwew.setAvailable(true);
+            ohnNoKhaukSwew.setCookingDuration("medium");
             menuRepo.save(ohnNoKhaukSwew);
 
             log.info("Menu table seeded successfully.");

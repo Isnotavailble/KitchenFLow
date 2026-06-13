@@ -23,6 +23,7 @@ public class MenuService {
                                 menuEntity.getName(),
                                 menuEntity.getCurrentPrice(),
                                 menuEntity.getCategoryName(),
+                                menuEntity.getCookingDuration(),
                                 menuEntity.isAvailable(),
                                 menuEntity.getCreatedAt(),
                                 menuEntity.getUpdatedAt())

@@ -2,7 +2,6 @@ package com.anyawalker.poskds.features.order;
 
 import com.anyawalker.poskds.features.order.dtos.OrderRequest;
 import com.anyawalker.poskds.features.order.exceptions.OrderFailureException;
-import com.anyawalker.poskds.models.entities.MenuEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("api/cashier")
+@RequestMapping("api/orders")
 public class OrderController {
     private final OrderService orderService;
     private final MenuService menuService;
@@ -20,6 +19,7 @@ public class OrderController {
         this.orderService = orderService;
         this.menuService = menuService;
     }
+
     @GetMapping("/view_orders")
     public ResponseEntity<?> viewAllOrders(@AuthenticationPrincipal Jwt jwt){
         Long userId = jwt.getClaim("userId");
@@ -44,4 +44,5 @@ public class OrderController {
     public ResponseEntity<?> viewAllMenu(){
         return ResponseEntity.ok(menuService.getAllMenu());
     }
+
 }
