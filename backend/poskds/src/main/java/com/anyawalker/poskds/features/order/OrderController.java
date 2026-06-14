@@ -14,10 +14,8 @@ import java.util.Map;
 @RequestMapping("api/orders")
 public class OrderController {
     private final OrderService orderService;
-    private final MenuService menuService;
-    public OrderController(OrderService orderService, MenuService menuService){
+    public OrderController(OrderService orderService){
         this.orderService = orderService;
-        this.menuService = menuService;
     }
 
     @GetMapping("/view_orders")
@@ -38,11 +36,6 @@ public class OrderController {
         } catch (OrderFailureException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("status",e.getMessage()));
         }
-    }
-
-    @GetMapping("/view_menus")
-    public ResponseEntity<?> viewAllMenu(){
-        return ResponseEntity.ok(menuService.getAllMenu());
     }
 
 }

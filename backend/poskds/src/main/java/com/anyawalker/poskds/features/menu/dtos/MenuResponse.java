@@ -1,4 +1,4 @@
-package com.anyawalker.poskds.features.order.dtos;
+package com.anyawalker.poskds.features.menu.dtos;
 
 import java.time.LocalDateTime;
 

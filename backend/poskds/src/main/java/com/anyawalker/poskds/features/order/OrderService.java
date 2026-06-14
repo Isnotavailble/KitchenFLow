@@ -1,5 +1,6 @@
 package com.anyawalker.poskds.features.order;
 
+import com.anyawalker.poskds.features.menu.MenuService;
 import com.anyawalker.poskds.features.order.dtos.OrderItemRequest;
 import com.anyawalker.poskds.features.order.dtos.OrderItemResponse;
 import com.anyawalker.poskds.features.order.dtos.OrderRequest;
@@ -9,7 +10,6 @@ import com.anyawalker.poskds.models.entities.MenuEntity;
 import com.anyawalker.poskds.models.entities.OrderEntity;
 import com.anyawalker.poskds.models.entities.OrderItemEntity;
 import com.anyawalker.poskds.models.entities.UserEntity;
-import com.anyawalker.poskds.repos.MenuRepo;
 import com.anyawalker.poskds.repos.OrderRepo;
 import com.anyawalker.poskds.repos.UserRepo;
 import org.springframework.stereotype.Service;
@@ -18,17 +18,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
     private final OrderRepo orderRepo;
     private final UserRepo userRepo;
-    private final MenuRepo menuRepo;
-    public OrderService(OrderRepo orderRepo, UserRepo userRepo, MenuRepo menuRepo){
+    private final MenuService menuService;
+    public OrderService(OrderRepo orderRepo, UserRepo userRepo, MenuService menuService){
         this.orderRepo = orderRepo;
         this.userRepo = userRepo;
-        this.menuRepo = menuRepo;
+        this.menuService = menuService;
     }
 
     @Transactional
@@ -45,12 +44,8 @@ public class OrderService {
                 .map(OrderItemRequest::menuId)
                 .distinct()
                 .toList();
-        //get all menu by list of ids
-        List<MenuEntity> menuEntityList = menuRepo.findAllById(menuEntityIds);
 
-        //create Map for lookup ( faster than list )
-        Map<Long,MenuEntity> menuEntityMap = menuEntityList.stream()
-                .collect(Collectors.toMap(MenuEntity::getId,menuEntity -> menuEntity));
+        Map<Long,MenuEntity> menuEntityMap = menuService.getMenuEntityMapByIds(menuEntityIds);
 
         //orderItemRequest -> orderItemEntity mapping process
         AtomicInteger totalOrderPrice = new AtomicInteger();

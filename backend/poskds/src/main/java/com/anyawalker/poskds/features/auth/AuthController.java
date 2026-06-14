@@ -1,11 +1,15 @@
 package com.anyawalker.poskds.features.auth;
 
+import com.anyawalker.poskds.features.auth.dtos.LoginRequest;
 import com.anyawalker.poskds.features.auth.dtos.LoginResponse;
 import com.anyawalker.poskds.features.auth.exceptions.InvalidRefreshTokenException;
 import com.anyawalker.poskds.features.auth.exceptions.TooEarlyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,15 +20,27 @@ import java.util.Map;
 @RequestMapping("api/auth")
 public class AuthController {
     private final AuthService authService;
-    public AuthController(AuthService authService){
+    private final AuthenticationManager authenticationManager;
+    public AuthController(AuthService authService, AuthenticationManager authenticationManager){
         this.authService = authService;
+        this.authenticationManager = authenticationManager;
     }
     @PostMapping("/login")
-    public ResponseEntity<?> doLogin(Authentication authentication){
-        String email = authentication.getName();
-        LoginResponse loginResponse = authService.doLogin(email);
+    public ResponseEntity<?> doLogin(@RequestBody LoginRequest loginRequest){
+        try {
+            //custom authentication with DaoAuthenticationManager
+            Authentication unauthenticatedRequest = UsernamePasswordAuthenticationToken
+                    .unauthenticated(loginRequest.email(), loginRequest.password());
+            Authentication authenticatedRequest = authenticationManager.authenticate(unauthenticatedRequest);
+            //saving user and token into db (service)
+            LoginResponse loginResponse = authService.doLogin(loginRequest.email());
+            return ResponseEntity.ok(loginResponse);
 
-        return ResponseEntity.ok(loginResponse);
+        }
+        catch (AuthenticationException e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("status","fail to authenticate"));
+        }
     }
     @PostMapping("/refresh")
     public ResponseEntity<?> doRefreshToken(@RequestBody Map<String, String> refreshToken) {
