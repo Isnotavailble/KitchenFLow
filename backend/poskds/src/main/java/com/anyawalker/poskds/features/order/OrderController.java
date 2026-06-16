@@ -41,17 +41,17 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("status",e.getMessage()));
         }
     }
-
-    @PatchMapping("/cancel_order/{orderId}")
+    @PatchMapping("/update_order_items/{orderId}")
     @PreAuthorize("hasAnyAuthority('ROLE_CASHIER','ROLE_ADMIN')")
-    public ResponseEntity<?> cancelOrder(@PathVariable Long orderId, @AuthenticationPrincipal Jwt jwt){
-        try{
+    public ResponseEntity<?> updateOrderItem(@PathVariable Long orderId,
+                                             @RequestBody Map<String, List<OrderItemUpdateRequest>> orderRequest,
+                                             @AuthenticationPrincipal Jwt jwt){
+        try {
             Long userId = jwt.getClaim("userId");
-            return ResponseEntity.ok(orderService.cancelOrder(orderId,userId));
-
-        } catch (OrderFailureException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("status",e.getMessage()));
+            return ResponseEntity.ok(orderService.updateOrderItems(orderId,orderRequest.get("orderItems"),userId));
+        }
+        catch (OrderFailureException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("status",e.getMessage()));
         }
     }
     @PatchMapping("/update_order_status/{orderId}")
