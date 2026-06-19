@@ -1,0 +1,103 @@
+
+-- Table: USERS
+CREATE TABLE USERS (
+  id INTEGER PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  mobile_num VARCHAR(100) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role VARCHAR(60) NOT NULL,
+  is_deleted BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON COLUMN USERS.password IS 'hashed';
+COMMENT ON COLUMN USERS.role IS 'ROLE_CASHIER, ROLE_CHEF, ROLE_OWNER';
+
+-- Table: TOKENS
+CREATE TABLE TOKENS (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL UNIQUE,
+    token_hash VARCHAR(500) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_tokens_user
+        FOREIGN KEY (user_id)
+        REFERENCES USERS(id)
+        ON DELETE CASCADE
+);
+
+-- Table: CATEGORY
+CREATE TABLE CATEGORY (
+  category_id INTEGER PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  is_deleted BOOLEAN DEFAULT FALSE
+);
+
+-- Table: MENU
+CREATE TABLE MENU (
+  menu_id INTEGER PRIMARY KEY,
+  name VARCHAR(200) NOT NULL,
+  price INTEGER NOT NULL,
+  category_id INTEGER,
+  is_available BOOLEAN DEFAULT TRUE,
+  cooking_duration VARCHAR(60),
+  is_deleted BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_menu_category
+    FOREIGN KEY (category_id)
+    REFERENCES CATEGORY(category_id)
+    ON DELETE SET NULL
+);
+
+COMMENT ON COLUMN MENU.cooking_duration IS 'fast, medium, heavy';
+
+-- Table: ORDERS
+CREATE TABLE ORDERS (
+  order_id INTEGER PRIMARY KEY,
+  order_number INTEGER NOT NULL, -- "KF-001, KF-002"
+  user_id INTEGER,
+  status VARCHAR(60) NOT NULL,
+  payment_status VARCHAR(60) DEFAULT 'paid',
+  payment_method VARCHAR(60),
+  subtotal_price INTEGER NOT NULL, -- Price before tax/discounts
+  tax_amount INTEGER DEFAULT 0,    -- Added for Owner Tax Reports
+  discount_amount INTEGER DEFAULT 0,
+  total_price INTEGER NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  global_version BIGINT DEFAULT 1,
+  CONSTRAINT fk_orders_user
+    FOREIGN KEY (user_id)
+    REFERENCES USERS(id)
+    ON DELETE SET NULL
+);
+
+COMMENT ON COLUMN ORDERS.user_id IS 'Cashier who created it';
+COMMENT ON COLUMN ORDERS.status IS 'waiting, cooking, completed, cancelled';
+COMMENT ON COLUMN ORDERS.payment_status IS 'unpaid, paid';
+COMMENT ON COLUMN ORDERS.payment_method IS 'cash, online';
+
+-- Table: ORDER_ITEMS
+CREATE TABLE ORDER_ITEMS (
+  order_item_id INTEGER PRIMARY KEY,
+  order_id INTEGER,
+  menu_id INTEGER,
+  quantity INTEGER NOT NULL,
+  unit_price INTEGER NOT NULL,
+  total_price INTEGER NOT NULL,
+  item_notes VARCHAR(255),
+  CONSTRAINT fk_orderitems_order
+  FOREIGN KEY (order_id)
+  REFERENCES ORDERS(order_id)
+  ON DELETE CASCADE,
+  CONSTRAINT fk_orderitems_menu
+  FOREIGN KEY (menu_id)
+  REFERENCES MENU(menu_id)
+  ON DELETE SET NULL
+);
+
+COMMENT ON COLUMN ORDER_ITEMS.unit_price IS 'Price snapshot at purchase';
+COMMENT ON COLUMN ORDER_ITEMS.total_price IS 'quantity * unit_price';
