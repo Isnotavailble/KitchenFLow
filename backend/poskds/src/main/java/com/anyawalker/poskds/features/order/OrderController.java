@@ -7,6 +7,7 @@ import com.anyawalker.poskds.features.order.dtos.OrderStatusRequest;
 import com.anyawalker.poskds.features.order.exceptions.AlreadyUpdatedException;
 import com.anyawalker.poskds.features.order.exceptions.InValidOrderStatusException;
 import com.anyawalker.poskds.features.order.exceptions.OrderFailureException;
+import com.anyawalker.poskds.features.eventlistener.ListenerService;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +23,10 @@ import java.util.Map;
 @RequestMapping("api/orders")
 public class OrderController {
     private final OrderService orderService;
-    private final OrderListenerService orderListenerService;
-    public OrderController(OrderService orderService, OrderListenerService orderListenerService){
+    private final ListenerService<List<OrderResponse>> listenerService;
+    public OrderController(OrderService orderService, ListenerService<List<OrderResponse>> listenerService){
         this.orderService = orderService;
-        this.orderListenerService = orderListenerService;
+        this.listenerService = listenerService;
     }
 
     @GetMapping("/view_orders")
@@ -75,7 +76,7 @@ public class OrderController {
         }
 
     }
-    @GetMapping("/listener")
+    @GetMapping("/sync")
     public DeferredResult<@NonNull List<OrderResponse>> changesListener(@RequestParam Long previousVersion, @AuthenticationPrincipal Jwt jwt){
 
         DeferredResult<@NonNull List<OrderResponse>> listener = new DeferredResult<>(60000L,
@@ -90,7 +91,7 @@ public class OrderController {
             }
 
             String userRole = "ROLE_" + jwt.getClaim("role");
-            orderListenerService.register(userRole,listener);
+            listenerService.register(userRole,listener);
         }
         catch (RuntimeException e){
             listener.setErrorResult(e);

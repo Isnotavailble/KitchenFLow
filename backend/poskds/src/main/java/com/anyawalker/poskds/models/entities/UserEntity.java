@@ -1,20 +1,26 @@
 package com.anyawalker.poskds.models.entities;
 
 import jakarta.persistence.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.Instant;
 import java.util.List;
 
 @Entity
 @Table(name = "users")
+@EntityListeners(AuditingEntityListener.class)
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "name")
+    @Column(name = "name",length = 120)
     private String username;
     
-    @Column(name = "email", unique = true)
-    private String email;
+    @Column(name = "mobile_number",length = 100, unique = true)
+    private String mobileNumber;
     
     @Column(name = "password")
     private String password;
@@ -22,19 +28,44 @@ public class UserEntity {
     @Column(name = "role", length = 60)
     private String role;
 
-    @OneToOne(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private TokenEntity tokenEntity;
+    @Column(name = "is_deleted",nullable = false)
+    private boolean isDeleted;
+
+    @CreatedDate
+    @Column(name = "createdAt")
+    private Instant createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updatedAt")
+    private Instant updatedAt;
+
+
+    @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<TokenEntity> tokenEntities;
     @OneToMany(mappedBy = "userEntity",fetch = FetchType.LAZY)
     private List<OrderEntity> orderEntityList;
 
     public UserEntity() {}
 
-    public UserEntity(Long id, String name, String email, String password, String role,List<OrderEntity> orderEntityList) {
+    public UserEntity(Long id,
+                      String name,
+                      String mobileNumber,
+                      String password,
+                      String role,
+                      List<TokenEntity> tokenEntities,
+                      List<OrderEntity> orderEntityList,
+                      boolean isDeleted,
+                      Instant createdAt,
+                      Instant updatedAt) {
         this.id = id;
-        this.email = email;
+        this.mobileNumber = mobileNumber;
         this.username = name;
         this.password = password;
         this.role = role;
+        this.tokenEntities = tokenEntities;
+        this.isDeleted = isDeleted;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
         this.orderEntityList = orderEntityList;
     }
 
@@ -61,12 +92,12 @@ public class UserEntity {
         this.username = name;
     }
 
-    public String getEmail() {
-        return this.email;
+    public String getMobileNumber() {
+        return this.mobileNumber;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setMobileNumber(String mobileNumber) {
+        this.mobileNumber = mobileNumber;
     }
 
     public String getPassword() {
@@ -85,11 +116,35 @@ public class UserEntity {
         this.role = role;
     }
 
-    public TokenEntity getToken() {
-        return tokenEntity;
+    public List<TokenEntity> getTokenEntities() {
+        return tokenEntities;
     }
 
-    public void setToken(TokenEntity tokenEntity) {
-        this.tokenEntity = tokenEntity;
+    public void setTokenEntities(List<TokenEntity> tokenEntities) {
+        this.tokenEntities = tokenEntities;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

@@ -20,16 +20,16 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     @NonNull
-    public UserDetails loadUserByUsername( @NonNull String email) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername( @NonNull String mobileNumber) throws UsernameNotFoundException {
 
-        Optional<UserEntity> user = userRepo.findByEmail(email);
+        Optional<UserEntity> user = userRepo.findByMobileNumber(mobileNumber);
 
         if (user.isEmpty())
             throw new UsernameNotFoundException("User with this name doesn't exist");
 
 
         return org.springframework.security.core.userdetails.User.builder()
-                .username(user.get().getEmail())
+                .username(user.get().getMobileNumber())
                 .password(user.get().getPassword())
                 .roles(user.get().getRole().replace("ROLE_",""))
                 .build();

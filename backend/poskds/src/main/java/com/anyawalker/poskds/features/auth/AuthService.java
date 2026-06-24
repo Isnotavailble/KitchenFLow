@@ -1,14 +1,9 @@
 package com.anyawalker.poskds.features.auth;
 
-import com.anyawalker.poskds.features.auth.dtos.LoginRequest;
 import com.anyawalker.poskds.features.auth.dtos.LoginResponse;
 import com.anyawalker.poskds.features.auth.dtos.TokenResponse;
 import com.anyawalker.poskds.models.entities.UserEntity;
 import com.anyawalker.poskds.repos.UserRepo;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,9 +19,9 @@ public class AuthService {
     }
 
     @Transactional
-    public LoginResponse doLogin(String email) {
+    public LoginResponse doLogin(String mobileNumber) {
 
-        UserEntity userEntity = userRepo.findByEmail(email).orElse(null);
+        UserEntity userEntity = userRepo.findByMobileNumber(mobileNumber).orElse(null);
         if (userEntity == null)
             return null;
         //generate new token
@@ -34,7 +29,7 @@ public class AuthService {
         return new LoginResponse(
                 userEntity.getId(),
                 userEntity.getUsername(),
-                userEntity.getEmail(),
+                userEntity.getMobileNumber(),
                 userEntity.getRole(),
                 tokenResponse);
     }

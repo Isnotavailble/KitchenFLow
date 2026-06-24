@@ -6,6 +6,7 @@ import com.anyawalker.poskds.features.order.exceptions.AlreadyUpdatedException;
 import com.anyawalker.poskds.features.order.exceptions.InValidOrderStatusException;
 import com.anyawalker.poskds.features.order.exceptions.OrderFailureException;
 import com.anyawalker.poskds.features.order.mappers.OrderItemMapper;
+import com.anyawalker.poskds.features.eventlistener.ListenerService;
 import com.anyawalker.poskds.models.dtos.OrderStatus;
 import com.anyawalker.poskds.models.entities.MenuEntity;
 import com.anyawalker.poskds.models.entities.OrderEntity;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -30,8 +30,8 @@ public class OrderService {
     private final UserRepo userRepo;
     private final MenuService menuService;
     private final OrderItemMapper orderItemMapper;
-    private final OrderListenerService orderListenerService;
-    public OrderService(OrderListenerService orderListenerService,
+    private final ListenerService<List<OrderResponse>> listenerService;
+    public OrderService(ListenerService<List<OrderResponse>> listenerService,
                         OrderRepo orderRepo,
                         UserRepo userRepo,
                         MenuService menuService,
@@ -40,7 +40,7 @@ public class OrderService {
         this.userRepo = userRepo;
         this.menuService = menuService;
         this.orderItemMapper = orderItemMapper;
-        this.orderListenerService = orderListenerService;
+        this.listenerService = listenerService;
     }
 
     public List<OrderResponse> viewAllOrders() {
@@ -269,7 +269,7 @@ public class OrderService {
                 globalVersion.get()
         );
 
-        orderListenerService.resolveListener(userRole, List.of(response));
+        listenerService.resolveListener(userRole, List.of(response));
         return  response;
     }
     public List<OrderResponse> getChanges(Long previousVersion){

@@ -30,10 +30,10 @@ public class AuthController {
         try {
             //custom authentication with DaoAuthenticationManager
             Authentication unauthenticatedRequest = UsernamePasswordAuthenticationToken
-                    .unauthenticated(loginRequest.email(), loginRequest.password());
+                    .unauthenticated(loginRequest.mobileNumber(), loginRequest.password());
             Authentication authenticatedRequest = authenticationManager.authenticate(unauthenticatedRequest);
             //saving user and token into db (service)
-            LoginResponse loginResponse = authService.doLogin(loginRequest.email());
+            LoginResponse loginResponse = authService.doLogin(loginRequest.mobileNumber());
             return ResponseEntity.ok(loginResponse);
 
         }
@@ -47,6 +47,10 @@ public class AuthController {
         try {
             String currentRefreshToken = refreshToken.get("refresh_token");
             return ResponseEntity.ok(authService.doRefreshToken(currentRefreshToken));
+        }
+        catch (AuthenticationException e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("status","fail to authenticate"));
         }
         //avoid using invalid token or outdated refreshToken to be refresh
         catch (InvalidRefreshTokenException e) {
