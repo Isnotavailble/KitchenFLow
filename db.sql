@@ -1,4 +1,3 @@
-
 -- Table: USERS
 CREATE TABLE USERS (
   id INTEGER PRIMARY KEY,
@@ -16,16 +15,16 @@ COMMENT ON COLUMN USERS.role IS 'ROLE_CASHIER, ROLE_CHEF, ROLE_OWNER';
 
 -- Table: TOKENS
 CREATE TABLE TOKENS (
-id INTEGER PRIMARY KEY,
-user_id INTEGER NOT NULL UNIQUE,
-token_hash VARCHAR(500) NOT NULL,
-expires_at TIMESTAMP NOT NULL,
-revoked BOOLEAN NOT NULL DEFAULT FALSE,
-created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-CONSTRAINT fk_tokens_user
-FOREIGN KEY (user_id)
-REFERENCES USERS(id)
-ON DELETE CASCADE
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL UNIQUE,
+  token_hash VARCHAR(500) NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  revoked BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_tokens_user
+    FOREIGN KEY (user_id)
+    REFERENCES USERS(id)
+    ON DELETE CASCADE
 );
 
 -- Table: CATEGORY
@@ -39,7 +38,10 @@ CREATE TABLE CATEGORY (
 CREATE TABLE MENU (
   menu_id INTEGER PRIMARY KEY,
   name VARCHAR(200) NOT NULL,
+  image_url VARCHAR(500),
+  image_id VARCHAR(255),
   price INTEGER NOT NULL,
+  menu_version BIGINT NOT NULL DEFAULT 1,
   category_id INTEGER,
   is_available BOOLEAN DEFAULT TRUE,
   cooking_duration VARCHAR(60),
@@ -52,33 +54,48 @@ CREATE TABLE MENU (
     ON DELETE SET NULL
 );
 
+COMMENT ON COLUMN MENU.menu_version IS 'For both locking and Delta sync';
 COMMENT ON COLUMN MENU.cooking_duration IS 'fast, medium, heavy';
 
 -- Table: ORDERS
 CREATE TABLE ORDERS (
   order_id INTEGER PRIMARY KEY,
-  order_number INTEGER NOT NULL, -- "KF-001, KF-002"
+  order_number INTEGER NOT NULL,
   user_id INTEGER,
   status VARCHAR(60) NOT NULL,
   payment_status VARCHAR(60) DEFAULT 'paid',
   payment_method VARCHAR(60),
-  subtotal_price INTEGER NOT NULL, -- Price before tax/discounts
-  tax_amount INTEGER DEFAULT 0,    -- Added for Owner Tax Reports
+  subtotal_price INTEGER NOT NULL,
+  tax_amount INTEGER DEFAULT 0,
   discount_amount INTEGER DEFAULT 0,
   total_price INTEGER NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  global_version BIGINT DEFAULT 1,
+  order_version BIGINT NOT NULL DEFAULT 1,
+  is_deleted BOOLEAN DEFAULT FALSE,
   CONSTRAINT fk_orders_user
     FOREIGN KEY (user_id)
     REFERENCES USERS(id)
     ON DELETE SET NULL
 );
 
+COMMENT ON COLUMN ORDERS.order_number IS 'KF-001, KF-002 (count by day)';
 COMMENT ON COLUMN ORDERS.user_id IS 'Cashier who created it';
 COMMENT ON COLUMN ORDERS.status IS 'waiting, cooking, completed, cancelled';
 COMMENT ON COLUMN ORDERS.payment_status IS 'unpaid, paid';
 COMMENT ON COLUMN ORDERS.payment_method IS 'cash, online';
+COMMENT ON COLUMN ORDERS.subtotal_price IS 'Price before tax/discounts';
+COMMENT ON COLUMN ORDERS.tax_amount IS 'Added for Owner Tax Reports';
+COMMENT ON COLUMN ORDERS.total_price IS 'price after tax/discounts';
+COMMENT ON COLUMN ORDERS.order_version IS 'For both locking and Delta Sync';
+
+-- Table: SYNC_VERSIONS
+CREATE TABLE SYNC_VERSIONS (
+  feature_key VARCHAR(60) PRIMARY KEY,
+  current_version BIGINT NOT NULL DEFAULT 1
+);
+
+COMMENT ON COLUMN SYNC_VERSIONS.feature_key IS 'ORDERS, MENU';
 
 -- Table: ORDER_ITEMS
 CREATE TABLE ORDER_ITEMS (
@@ -90,13 +107,13 @@ CREATE TABLE ORDER_ITEMS (
   total_price INTEGER NOT NULL,
   item_notes VARCHAR(255),
   CONSTRAINT fk_orderitems_order
-  FOREIGN KEY (order_id)
-  REFERENCES ORDERS(order_id)
-  ON DELETE CASCADE,
+    FOREIGN KEY (order_id)
+    REFERENCES ORDERS(order_id)
+    ON DELETE CASCADE,
   CONSTRAINT fk_orderitems_menu
-  FOREIGN KEY (menu_id)
-  REFERENCES MENU(menu_id)
-  ON DELETE SET NULL
+    FOREIGN KEY (menu_id)
+    REFERENCES MENU(menu_id)
+    ON DELETE SET NULL
 );
 
 COMMENT ON COLUMN ORDER_ITEMS.unit_price IS 'Price snapshot at purchase';

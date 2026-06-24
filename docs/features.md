@@ -30,7 +30,7 @@ A secure, stateless session authentication system built with Spring Security and
 *   **Order Modification:** Cashiers can modify order items or cancel/refund (set status to `cancel`) the order **only while it is in the `waiting` state**.
 *   **Transition Blockers:** Cashiers are not allowed to update items or status once the order moves to the `cooking` state.
 *   **Calculate Order Total:** Automatically sums the snapshot prices of all items.
-*   **View Active Tickets:** Allows cashiers to track the status of placed orders.
+*   **View Orders:** Allows cashiers to track the status of placed orders.The cashier can view all orders, filter by status (`waiting`, `cooking`, `complete`, `cancel`).
 
 ---
 
@@ -41,6 +41,8 @@ A secure, stateless session authentication system built with Spring Security and
 *   **Transition to Complete:** Once the order is prepared, the Chef updates the status from `cooking` to `complete` (corresponds to the "Ready" and "Served" states in the PRD, notifying the front-of-house).
 *   **No Cancellation:** Chefs do not have permission to cancel orders; only Cashiers and Admins are authorized.
 *   **Finalized (Dead) States:** Once an order is marked `complete` or `cancel`, it becomes finalized and immutable. No further updates to items or status transitions are allowed.
+* **View Order By Menu** The chef can view the order by menu item, allowing them to see all items that need to be prepared for a specific menu item across multiple orders.
+* ****
 
 ---
 
