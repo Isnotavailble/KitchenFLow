@@ -1,12 +1,12 @@
 package com.anyawalker.poskds.features.order;
 
+import com.anyawalker.poskds.features.eventlistener.EventEmitterService;
 import com.anyawalker.poskds.features.menu.MenuService;
 import com.anyawalker.poskds.features.order.dtos.*;
 import com.anyawalker.poskds.features.order.exceptions.AlreadyUpdatedException;
 import com.anyawalker.poskds.features.order.exceptions.InValidOrderStatusException;
 import com.anyawalker.poskds.features.order.exceptions.OrderFailureException;
 import com.anyawalker.poskds.features.order.mappers.OrderItemMapper;
-import com.anyawalker.poskds.features.eventlistener.ListenerService;
 import com.anyawalker.poskds.models.dtos.OrderStatus;
 import com.anyawalker.poskds.models.entities.MenuEntity;
 import com.anyawalker.poskds.models.entities.OrderEntity;
@@ -30,8 +30,8 @@ public class OrderService {
     private final UserRepo userRepo;
     private final MenuService menuService;
     private final OrderItemMapper orderItemMapper;
-    private final ListenerService<List<OrderResponse>> listenerService;
-    public OrderService(ListenerService<List<OrderResponse>> listenerService,
+    private final EventEmitterService<OrderResponse> eventEmitterService;
+    public OrderService(EventEmitterService<OrderResponse> eventEmitterService,
                         OrderRepo orderRepo,
                         UserRepo userRepo,
                         MenuService menuService,
@@ -40,7 +40,7 @@ public class OrderService {
         this.userRepo = userRepo;
         this.menuService = menuService;
         this.orderItemMapper = orderItemMapper;
-        this.listenerService = listenerService;
+        this.eventEmitterService = eventEmitterService;
     }
 
     public List<OrderResponse> viewAllOrders() {
@@ -223,7 +223,7 @@ public class OrderService {
         String nextStatus = orderStatusRequest.status().trim().toLowerCase();
         //check if the user has pemission to change status
         if (grantedAuthorities == null || !grantedAuthorities.contains(nextStatus))
-            throw new InValidOrderStatusException("Invalid or Unauthorized status cannot be updated");
+            throw new InValidOrderStatusException("Invalid or Unauthorized status cannot be updated for" + userRole);
 
         //chef or admin have to see all order coming from all cashier ( the current focus is one shop not multiple shop)
         OrderEntity targetOrderEntity;
@@ -269,7 +269,7 @@ public class OrderService {
                 globalVersion.get()
         );
 
-        listenerService.resolveListener(userRole, List.of(response));
+        eventEmitterService.publish(userRole,userRole + "-update-order",response);
         return  response;
     }
     public List<OrderResponse> getChanges(Long previousVersion){

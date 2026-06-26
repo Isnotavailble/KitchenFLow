@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
-public class ListenerService<T> {
+public class LongPollingService<T> {
     //group listeners by user roles
     Map<String,List<DeferredResult<@NonNull T>>> listeners = new ConcurrentHashMap<>();
 
