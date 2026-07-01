@@ -7,14 +7,14 @@ import jakarta.persistence.*;
 public class OrderItemEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id")
     private OrderEntity orderEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "menu_id", nullable = false)
+    @JoinColumn(name = "menu_id")
     private MenuEntity menuEntity;
 
     @Column(name = "quantity", nullable = false)
@@ -23,28 +23,26 @@ public class OrderItemEntity {
     @Column(name ="unit_price", nullable = false)
     private int unitPrice;
 
-    @Column(name = "total_price", nullable = false)
-    private int totalPrice;
+    @Column(name = "item_notes", length = 255)
+    private String itemNotes;
 
-    // Default Constructor
     public OrderItemEntity() {}
 
-    // Parameterized Constructor
-    public OrderItemEntity(OrderEntity orderEntity, MenuEntity menuEntity, int quantity, int unitPrice, int totalPrice) {
+    public OrderItemEntity(Integer orderItemId, OrderEntity orderEntity, MenuEntity menuEntity, int quantity, int unitPrice, String itemNotes) {
+        this.id = orderItemId;
         this.orderEntity = orderEntity;
         this.menuEntity = menuEntity;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
-        this.totalPrice = totalPrice;
+        this.itemNotes = itemNotes;
     }
 
-    // Getters and Setters
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setId(Integer orderItemId) {
+        this.id = orderItemId;
     }
 
     public OrderEntity getOrderEntity() {
@@ -79,11 +77,11 @@ public class OrderItemEntity {
         this.unitPrice = unitPrice;
     }
 
-    public int getTotalPrice() {
-        return totalPrice;
+    public String getItemNotes() {
+        return itemNotes;
     }
 
-    public void setTotalPrice(int totalPrice) {
-        this.totalPrice = totalPrice;
+    public void setItemNotes(String itemNotes) {
+        this.itemNotes = itemNotes;
     }
 }

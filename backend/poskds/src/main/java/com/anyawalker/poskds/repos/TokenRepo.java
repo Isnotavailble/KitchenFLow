@@ -12,16 +12,16 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TokenRepo extends JpaRepository<@NonNull TokenEntity,@NonNull Integer> {
+public interface TokenRepo extends JpaRepository<@NonNull TokenEntity,@NonNull Long> {
 
     @Query(value = """
             SELECT * FROM tokens
-            WHERE user_id = :userId AND is_revoked = :isRevoked
+            WHERE user_id = :userId AND revoked = :isRevoked
             """,nativeQuery = true)
     List<TokenEntity> findByUserIdAndIsRevoked(@Param("userId") Long userId,
                                                @Param("isRevoked") boolean isRevoked);
     @Query(value = """
-            SELECT * FROM WHERE user_id = :userId
+            SELECT * FROM tokens WHERE user_id = :userId
             """,nativeQuery = true)
     List<TokenEntity> findByUserId(@Param("userId") Long userId);
 
@@ -29,6 +29,6 @@ public interface TokenRepo extends JpaRepository<@NonNull TokenEntity,@NonNull I
     @Query(value = "DELETE FROM tokens WHERE user_id = :userId",nativeQuery = true)
     void deleteByUserId(@Param("userId") Long userId);
 
-    @Query(value = "SELECT * FROM tokens WHERE refresh_token = :refreshToken",nativeQuery = true)
-    Optional<TokenEntity> findByRefreshToken(@Param("refreshToken") String refreshToken);
+    @Query(value = "SELECT * FROM tokens WHERE token_hash = :tokenHash",nativeQuery = true)
+    Optional<TokenEntity> findByRefreshToken(@Param("tokenHash") String tokenHash);
 }

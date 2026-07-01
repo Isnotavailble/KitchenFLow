@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -14,56 +14,87 @@ import java.util.List;
 public class OrderEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
+
+    @Column(name = "order_number", nullable = false)
+    private Integer orderNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private UserEntity userEntity;
-    //waiting,cooking,complete [can only cancel while waiting]
-    @Column(name = "status", nullable = false)
+
+    @Column(name = "status", nullable = false, length = 60)
     private String status;
+
+    @Column(name = "order_duration")
+    private Integer orderDuration;
+
+    @Column(name = "payment_status", length = 60)
+    private String paymentStatus = "paid";
+
+    @Column(name = "payment_method", length = 60)
+    private String paymentMethod = "cash";
+
+    @Column(name = "subtotal_price")
+    private Integer subtotalPrice = 0;
+
+    @Column(name = "tax_amount")
+    private Integer taxAmount = 0;
+
+    @Column(name = "discount_amount")
+    private Integer discountAmount = 0;
 
     @Column(name = "total_price", nullable = false)
     private int totalPrice;
 
     @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at")
     private Instant createdAt;
 
     @LastModifiedDate
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     private Instant updatedAt;
-    //complete timestamp
-    @Column(name = "resolved_at")
-    private Instant resolvedAt;
 
-    @Column(name = "global_version")
-    private Long globalVersion;
+    @Column(name = "is_deleted")
+    private boolean isDeleted = false;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "orderEntity", orphanRemoval = true, cascade = CascadeType.ALL)
     private List<OrderItemEntity> orderItemEntityList;
 
-    // Default Constructor (Required by JPA)
     public OrderEntity() {}
 
-    // Parameterized Constructor (Excluding auto-generated ID)
-    public OrderEntity(UserEntity userEntity, String status, int totalPrice, Instant createdAt, Instant updatedAt, Instant resolvedAt, List<OrderItemEntity> orderItemEntityList) {
+    public OrderEntity(Integer orderId, Integer orderNumber, UserEntity userEntity, String status, Integer orderDuration, String paymentStatus, String paymentMethod, Integer subtotalPrice, Integer taxAmount, Integer discountAmount, int totalPrice, Instant createdAt, Instant updatedAt, boolean isDeleted, List<OrderItemEntity> orderItemEntityList) {
+        this.id = orderId;
+        this.orderNumber = orderNumber;
         this.userEntity = userEntity;
         this.status = status;
+        this.orderDuration = orderDuration;
+        this.paymentStatus = paymentStatus;
+        this.paymentMethod = paymentMethod;
+        this.subtotalPrice = subtotalPrice;
+        this.taxAmount = taxAmount;
+        this.discountAmount = discountAmount;
         this.totalPrice = totalPrice;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.resolvedAt = resolvedAt;
+        this.isDeleted = isDeleted;
         this.orderItemEntityList = orderItemEntityList;
     }
 
-    // Getters and Setters
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setId(Integer orderId) {
+        this.id = orderId;
+    }
+
+    public Integer getOrderNumber() {
+        return orderNumber;
+    }
+
+    public void setOrderNumber(Integer orderNumber) {
+        this.orderNumber = orderNumber;
     }
 
     public UserEntity getUserEntity() {
@@ -80,6 +111,54 @@ public class OrderEntity {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Integer getOrderDuration() {
+        return orderDuration;
+    }
+
+    public void setOrderDuration(Integer orderDuration) {
+        this.orderDuration = orderDuration;
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public Integer getSubtotalPrice() {
+        return subtotalPrice;
+    }
+
+    public void setSubtotalPrice(Integer subtotalPrice) {
+        this.subtotalPrice = subtotalPrice;
+    }
+
+    public Integer getTaxAmount() {
+        return taxAmount;
+    }
+
+    public void setTaxAmount(Integer taxAmount) {
+        this.taxAmount = taxAmount;
+    }
+
+    public Integer getDiscountAmount() {
+        return discountAmount;
+    }
+
+    public void setDiscountAmount(Integer discountAmount) {
+        this.discountAmount = discountAmount;
     }
 
     public int getTotalPrice() {
@@ -106,12 +185,12 @@ public class OrderEntity {
         this.updatedAt = updatedAt;
     }
 
-    public Instant getResolvedAt() {
-        return resolvedAt;
+    public boolean isDeleted() {
+        return isDeleted;
     }
 
-    public void setResolvedAt(Instant resolvedAt) {
-        this.resolvedAt = resolvedAt;
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
     }
 
     public List<OrderItemEntity> getOrderItemEntityList() {
@@ -120,13 +199,5 @@ public class OrderEntity {
 
     public void setOrderItemEntityList(List<OrderItemEntity> orderItemEntityList) {
         this.orderItemEntityList = orderItemEntityList;
-    }
-
-    public Long getGlobalVersion() {
-        return globalVersion;
-    }
-
-    public void setGlobalVersion(Long globalVersion) {
-        this.globalVersion = globalVersion;
     }
 }

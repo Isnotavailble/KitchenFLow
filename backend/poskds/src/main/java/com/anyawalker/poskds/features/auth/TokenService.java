@@ -23,8 +23,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -52,8 +50,8 @@ public class TokenService {
         // Create stateful UUID refresh token in database (valid for 7 days)
         //mental model : refresh Token ( for frontend )  > access token (for backend)
         TokenEntity tokenEntity = new TokenEntity();
-        tokenEntity.setUser(userEntity);
-        tokenEntity.setRefreshToken(hashedRefreshToken);
+        tokenEntity.setUserEntity(userEntity);
+        tokenEntity.setTokenHash(hashedRefreshToken);
         tokenEntity.setExpiresAt(LocalDateTime.now().plusHours(1));
 
         // Save session (UUID generated automatically by JPA)
@@ -69,7 +67,7 @@ public class TokenService {
                 .orElseThrow(() -> new InvalidRefreshTokenException("Invalid refresh token."));
 
         // hibernate will call the select * from users where id = :id
-        Long userId = tokenEntity.getUser().getId();
+        Long userId = tokenEntity.getUserEntity().getId();
 
         //token reused detection
         //if detected,destroy all the token by userId
@@ -85,18 +83,16 @@ public class TokenService {
         else if (LocalDateTime.now().isBefore(tokenEntity.getCreatedAt().plusSeconds(30))){
             throw new TooEarlyException("Too early to be refreshed");
         }
-        else if (LocalDateTime.now().isBefore(tokenEntity.getUpdatedAt().plusSeconds(30))){
-            throw new TooEarlyException("Too early to be refreshed");
-        }
+
         // Generate a new access/refresh token
         TokenEntity newTokenEntity = new TokenEntity();
 
-        String newAccessToken = generateAccessToken(tokenEntity.getUser());
+        String newAccessToken = generateAccessToken(tokenEntity.getUserEntity());
         String newRefreshToken = UUID.randomUUID().toString();
 
         //create new Token
-        newTokenEntity.setUser(tokenEntity.getUser());
-        newTokenEntity.setRefreshToken(hashToken(newRefreshToken));
+        newTokenEntity.setUserEntity(tokenEntity.getUserEntity());
+        newTokenEntity.setTokenHash(hashToken(newRefreshToken));
         newTokenEntity.setExpiresAt(LocalDateTime.now().plusHours(1));
         //revoke the old one
         tokenEntity.setRevoked(true);

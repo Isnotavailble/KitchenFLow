@@ -13,11 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface OrderRepo extends JpaRepository<@NonNull OrderEntity,@NonNull Long> {
-    Optional<OrderEntity> findByIdAndUserEntity_Id(@NonNull Long orderId,@NonNull Long userId);
-    List<OrderEntity> findByGlobalVersionGreaterThan(@NonNull Long globalVersion);
-
-    @Query("SELECT max(o.globalVersion) FROM OrderEntity o")
-    Optional<Long> findMaxGlobalVersion();
+public interface OrderRepo extends JpaRepository<@NonNull OrderEntity,@NonNull Integer> {
+    Optional<OrderEntity> findByIdAndUserEntity_Id(@NonNull Integer orderId,@NonNull Long userId);
 
 }

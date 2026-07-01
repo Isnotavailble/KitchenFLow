@@ -50,7 +50,7 @@ public class OrderController {
     }
     @PatchMapping("/update_order_items/{orderId}")
     @PreAuthorize("hasAnyAuthority('ROLE_CASHIER','ROLE_ADMIN')")
-    public ResponseEntity<?> updateOrderItem(@PathVariable Long orderId,
+    public ResponseEntity<?> updateOrderItem(@PathVariable Integer orderId,
                                              @RequestBody Map<String, List<OrderItemUpdateRequest>> orderRequest,
                                              @AuthenticationPrincipal Jwt jwt){
         try {
@@ -62,7 +62,7 @@ public class OrderController {
         }
     }
     @PatchMapping("/update_order_status/{orderId}")
-    public ResponseEntity<?> updateOrderStatus(@PathVariable Long orderId, @RequestBody OrderStatusRequest orderStatusRequest,
+    public ResponseEntity<?> updateOrderStatus(@PathVariable Integer orderId, @RequestBody OrderStatusRequest orderStatusRequest,
                                                @AuthenticationPrincipal Jwt jwt){
         try {
             Long userId = jwt.getClaim("userId");

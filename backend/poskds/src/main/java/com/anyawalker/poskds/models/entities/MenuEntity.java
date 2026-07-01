@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -13,72 +15,77 @@ import java.util.List;
 public class MenuEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 200)
     private String name;
 
-    @Column(name = "current_price", nullable = false)
-    private int currentPrice;
+    @Column(name = "price", nullable = false)
+    private int price;
 
-    @Column(name = "category_name", nullable = false)
-    private String categoryName;
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    private String imageUrl;
 
-    @Column(name = "is_available", nullable = false)
-    private boolean isAvailable;
+    @Column(name = "image_id", columnDefinition = "TEXT")
+    private String imageId;
 
-    //fast,medium,heavy
-    @Column(name = "cooking_duration", length = 60)
-    private String cookingDuration;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private CategoryEntity categoryEntity;
+
+    @Column(name = "is_available")
+    private boolean isAvailable = true;
+
+    @Column(name = "workload_tier")
+    private Integer workloadTier = 1;
 
     @CreatedDate
-    @Column(name ="created_at", nullable = false, updatable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @LastModifiedDate
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "is_deleted")
+    private boolean isDeleted = false;
 
     @OneToMany(mappedBy = "menuEntity", fetch = FetchType.LAZY)
     private List<OrderItemEntity> orderItemEntityList;
 
-    // Default Constructor
     public MenuEntity() {}
 
-    // Parameterized Constructor
-    public MenuEntity(String name,
-                      int currentPrice,
-                      String categoryName,
+    public MenuEntity(Integer id, String name,
+                      int price,
+                      String imageUrl,
+                      String imageId,
+                      CategoryEntity categoryEntity,
                       boolean isAvailable,
+                      Integer workloadTier,
                       LocalDateTime createdAt,
                       LocalDateTime updatedAt,
-                      List<OrderItemEntity> orderItemEntityList,
-                      String cookingDuration
-    ) {
+                      boolean isDeleted,
+                      List<OrderItemEntity> orderItemEntityList) {
+        this.id = id;
         this.name = name;
-        this.currentPrice = currentPrice;
-        this.categoryName = categoryName;
+        this.price = price;
+        this.imageUrl = imageUrl;
+        this.imageId = imageId;
+        this.categoryEntity = categoryEntity;
         this.isAvailable = isAvailable;
+        this.workloadTier = workloadTier;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.isDeleted = isDeleted;
         this.orderItemEntityList = orderItemEntityList;
-        this.cookingDuration = cookingDuration;
     }
 
-    // Getters and Setters
-    public String getCookingDuration(){
-        return this.cookingDuration;
-    }
-    public void setCookingDuration(String type){
-        this.cookingDuration = type;
-    }
-
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setId(Integer menuId) {
+        this.id = menuId;
     }
 
     public String getName() {
@@ -89,20 +96,36 @@ public class MenuEntity {
         this.name = name;
     }
 
-    public int getCurrentPrice() {
-        return currentPrice;
+    public int getPrice() {
+        return price;
     }
 
-    public void setCurrentPrice(int currentPrice) {
-        this.currentPrice = currentPrice;
+    public void setPrice(int price) {
+        this.price = price;
     }
 
-    public String getCategoryName() {
-        return categoryName;
+    public String getImageUrl() {
+        return imageUrl;
     }
 
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getImageId() {
+        return imageId;
+    }
+
+    public void setImageId(String imageId) {
+        this.imageId = imageId;
+    }
+
+    public CategoryEntity getCategoryEntity() {
+        return categoryEntity;
+    }
+
+    public void setCategoryEntity(CategoryEntity categoryEntity) {
+        this.categoryEntity = categoryEntity;
     }
 
     public boolean isAvailable() {
@@ -111,6 +134,14 @@ public class MenuEntity {
 
     public void setAvailable(boolean available) {
         isAvailable = available;
+    }
+
+    public int getWorkloadTier() {
+        return workloadTier;
+    }
+
+    public void setWorkloadTier(Integer workloadTier) {
+        this.workloadTier = workloadTier;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -127,6 +158,14 @@ public class MenuEntity {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
     }
 
     public List<OrderItemEntity> getOrderItemEntityList() {

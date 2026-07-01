@@ -2,78 +2,69 @@ package com.anyawalker.poskds.models.entities;
 
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "tokens", indexes = {
-        @Index(name = "idx_refresh_token", columnList = "refresh_token")
-})
+@Table(name = "tokens")
 @EntityListeners(AuditingEntityListener.class)
 public class TokenEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    @Column(name = "refresh_token",length = 500,unique = true)
-    private String refreshToken;
-
-    @Column(name = "is_revoked",nullable = false)
-    private boolean isRevoked = false;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity userEntity;
-    //for refresh token
+
+    @Column(name = "token_hash", nullable = false, length = 500, unique = true)
+    private String tokenHash;
+
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
-    //for refresh token
-    @CreatedDate
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
 
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Column(name = "revoked", nullable = false)
+    private boolean isRevoked = false;
+
+    @CreatedDate
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     public TokenEntity() {}
 
-    public TokenEntity(Integer id,
-                       UserEntity userEntity,
-                       LocalDateTime expiresAt,
-                       LocalDateTime createdAt,
-                       LocalDateTime updatedAt,boolean isRevoked) {
-        this.userEntity = userEntity;
-        this.expiresAt = expiresAt;
+    public TokenEntity(Long id, UserEntity userEntity, String tokenHash, LocalDateTime expiresAt, boolean isRevoked, LocalDateTime createdAt) {
         this.id = id;
+        this.userEntity = userEntity;
+        this.tokenHash = tokenHash;
+        this.expiresAt = expiresAt;
         this.isRevoked = isRevoked;
         this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
-    public LocalDateTime getUpdatedAt(){
-        return this.updatedAt;
-    }
-    public void setUpdatedAt(LocalDateTime dateTime){
-        this.updatedAt = dateTime;
     }
 
-    public String getRefreshToken() {
-        return refreshToken;
+    public Long getId() {
+        return id;
     }
 
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public UserEntity getUser() {
+    public UserEntity getUserEntity() {
         return userEntity;
     }
 
-    public void setUser(UserEntity userEntity) {
+    public void setUserEntity(UserEntity userEntity) {
         this.userEntity = userEntity;
+    }
+
+    public String getTokenHash() {
+        return tokenHash;
+    }
+
+    public void setTokenHash(String tokenHash) {
+        this.tokenHash = tokenHash;
     }
 
     public LocalDateTime getExpiresAt() {
@@ -84,6 +75,14 @@ public class TokenEntity {
         this.expiresAt = expiresAt;
     }
 
+    public boolean isRevoked() {
+        return isRevoked;
+    }
+
+    public void setRevoked(boolean revoked) {
+        isRevoked = revoked;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -91,12 +90,4 @@ public class TokenEntity {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-
-    public Integer getId() {return id;}
-
-    public void setId(Integer id) {this.id = id;}
-
-    public boolean isRevoked() {return isRevoked;}
-
-    public void setRevoked(boolean revoked) {isRevoked = revoked;}
 }
