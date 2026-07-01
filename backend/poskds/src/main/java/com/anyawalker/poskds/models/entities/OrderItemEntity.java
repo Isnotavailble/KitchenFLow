@@ -23,7 +23,7 @@ public class OrderItemEntity {
     @Column(name ="unit_price", nullable = false)
     private int unitPrice;
 
-    @Column(name = "item_notes", length = 255)
+    @Column(name = "item_notes")
     private String itemNotes;
 
     public OrderItemEntity() {}

@@ -17,6 +17,8 @@ import com.anyawalker.poskds.repos.UserRepo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -48,6 +50,7 @@ public class OrderService {
                 orderEntity -> new OrderResponse(
                         orderEntity.getId(),
                         orderEntity.getUserEntity().getId(),
+                        orderEntity.getOrderNumber(),
                         orderEntity.getStatus(),
                         "",
                         orderEntity.getOrderItemEntityList().stream()
@@ -99,6 +102,7 @@ public class OrderService {
                 .toList();
         order.setOrderItemEntityList(orderItemList);
         order.setTotalPrice(totalOrderPrice.get());
+        order.setOrderNumber(generateOrderNumber());
         OrderEntity savedOrder = orderRepo.save(order);
 
         //map orderItemEntity to orderItemResponse to get the db generated id
@@ -109,6 +113,7 @@ public class OrderService {
         return new OrderResponse(
                 savedOrder.getId(),
                 userId,
+                savedOrder.getOrderNumber(),
                 savedOrder.getStatus(),
                 "order created successfully",
                 orderItemResponses,savedOrder.getTotalPrice()
@@ -186,6 +191,7 @@ public class OrderService {
         return new OrderResponse(
                 savedOrder.getId(),
                 userId,
+                savedOrder.getOrderNumber(),
                 savedOrder.getStatus(),
                 "order updated successfully",
                 orderItemResponses, savedOrder.getTotalPrice()
@@ -247,6 +253,7 @@ public class OrderService {
         OrderResponse response = new OrderResponse(
                 savedOrder.getId(),
                 orderCreatorId,
+                savedOrder.getOrderNumber(),
                 savedOrder.getStatus(),
                 "order status updated successfully",
                 orderItemResponses,
@@ -255,6 +262,16 @@ public class OrderService {
 
         eventEmitterService.publish(userRole,userRole + "-update-order",response);
         return  response;
+    }
+
+    private int generateOrderNumber(){
+        LocalDate today = LocalDate.now();
+        LocalDateTime startTime = today.atStartOfDay();
+        LocalDateTime endTime = today.plusDays(1).atStartOfDay();
+        Optional<OrderEntity> todayLatestOrder = orderRepo.findTopByCreatedAtBetweenOrderByOrderNumberDesc(startTime,endTime);
+
+        return todayLatestOrder.map(orderEntity -> orderEntity.getOrderNumber() + 1).orElse(1);
+
     }
 
 }

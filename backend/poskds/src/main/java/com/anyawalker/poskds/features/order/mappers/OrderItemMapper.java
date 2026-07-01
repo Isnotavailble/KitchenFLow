@@ -16,6 +16,7 @@ public class OrderItemMapper {
                 orderItemEntity.getMenuEntity().getId(),
                 orderItemEntity.getMenuEntity().getName(),
                 orderItemEntity.getQuantity(),
-                orderItemEntity.getUnitPrice());
+                orderItemEntity.getUnitPrice(),
+                orderItemEntity.getItemNotes());
     }
 }
