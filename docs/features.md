@@ -24,25 +24,22 @@ A secure, stateless session authentication system built with Spring Security and
 ## 💵 2. Cashier Module (POS)
 *Status: Active / Implemented*
 
-*   **Order Creation:** Rapidly add items to a ticket from available menu categories, fetching current prices from the menu and capturing snapshots. Newly created orders automatically start with a `waiting` status.
+*   **Order Creation:** Rapidly add items to a ticket from available menu categories. All orders are treated as pre-paid self-service orders. Newly created orders automatically start with a `waiting` status.
 *   **Payment Processing:** Marks orders as paid via cash or card (`online` method) and records billing details like `tax_amount` and `discount_amount` in the database.
 *   **Ticket Generation:** Generates a unique, daily ticket tracking number (`order_number`) for order tracking.
-*   **Order Modification:** Cashiers can modify order items or cancel/refund (set status to `cancel`) the order **only while it is in the `waiting` state**.
-*   **Transition Blockers:** Cashiers are not allowed to update items or status once the order moves to the `cooking` state.
-*   **Calculate Order Total:** Automatically sums the snapshot prices of all items.
-*   **View Orders:** Allows cashiers to track the status of placed orders.The cashier can view all orders, filter by status (`waiting`, `cooking`, `complete`, `cancel`).
+*   **Immutable Orders:** Cashiers cannot modify order items or cancel/refund orders. If an item is out of stock, the Owner must cancel the order, and the Cashier receives an alert to handle the refund/swap with the customer.
+*   **Calculate Order Total:** Automatically sums the snapshot prices of all items dynamically.
+*   **View Orders:** Allows cashiers to track the status of placed orders via the real-time stream.
 
 ---
 
 ## 🍳 3. Kitchen Monitoring Module (KDS)
 *Status: Active / Implemented*
 *   **Receive Waiting Orders:** The Chef receives orders immediately with the `waiting` status as soon as the Cashier creates them.
-*   **Transition to Cooking:** The Chef accepts a waiting order and updates its status to `cooking`.
-*   **Transition to Complete:** Once the order is prepared, the Chef updates the status from `cooking` to `complete` (corresponds to the "Ready" and "Served" states in the PRD, notifying the front-of-house).
-*   **No Cancellation:** Chefs do not have permission to cancel orders; only Cashiers and Admins are authorized.
-*   **Finalized (Dead) States:** Once an order is marked `complete` or `cancel`, it becomes finalized and immutable. No further updates to items or status transitions are allowed.
-* **View Order By Menu** The chef can view the order by menu item, allowing them to see all items that need to be prepared for a specific menu item across multiple orders.
-* ****
+*   **Automated Workload Rating:** The KDS calculates and displays a complexity rating (`order_duration` points) for each order using the mathematical formula: Total Points = Sum(Quantity * Workload Tier).
+*   **Single-Touch Completion:** The Chef uses a high-throughput single-touch flow to transition an order from `waiting` directly to `completed`. There is no intermediate `cooking` state.
+*   **No Cancellation/Menu Edits:** Chefs do not have permission to cancel orders or mark menu items as unavailable. This ensures strict Owner-level control over business operations.
+*   **View Order By Menu:** The chef can view the order by menu item, allowing them to see all items that need to be prepared for a specific menu item across multiple orders.
 
 ---
 
@@ -51,10 +48,10 @@ A secure, stateless session authentication system built with Spring Security and
 
 A lightweight, high-performance real-time synchronization engine designed to sync Cashier and Chef screens under the required 500ms threshold.
 
-*   **Non-Blocking DeferredResult:** Holds client update requests open without blocking servlet threads.
-*   **Bidirectional Global Updates:** Instantly syncs the cashier's screen when a chef changes status (`cooking`, `complete`), and updates the kitchen display immediately when a cashier creates or modifies a ticket.
-*   **In-Memory Version Cache:** Uses a sequence-based in-memory cache to prevent "reconnect-gap" timeouts and avoid database polling overhead.
-*   **Menu Availability Sync:** Instantly updates the cashier's active ordering menu when the chef toggles a menu item's availability (`isAvailable = false/true`) in the kitchen.
+*   **SSE emitter with pub/sub pattern:** : Hold the connection longer than long polling or infinite connection, allowing the server to push updates to the client in real-time.
+*   **Bidirectional Global Updates:** Instantly syncs the cashier's screen when a chef changes status to `completed` or an owner changes status to `cancelled`. Updates the kitchen display immediately when a cashier creates a ticket.
+*   **Timestamp-Based Delta Sync (Optional):** Uses the `updated_at` column to invalidate caches and push incremental updates (replacing the old locking version sequence).
+*   **Menu Availability Sync:** Instantly updates the cashier's active ordering menu when the owner toggles a menu item's availability (`isAvailable = false/true`), preventing invalid order creation.
 
 ---
 
@@ -91,7 +88,6 @@ Comprehensive business intelligence reports for financial reporting, auditing, a
 *   **Item Performance:** Rank menu items by sales volume to identify best-sellers and dead stock.
 *   **Sales Trends:** Visualize peak operational hours and days to optimize staffing.
 *   **Cashier Balancing:** Group daily revenue by `user_id` to reconcile expected cash drawer totals against physical cash.
-*   **Inventory & Order Matching:** Cross-reference "complete/served" dishes from the kitchen against "paid" orders to identify waste or unbilled items.
 
 ---
 

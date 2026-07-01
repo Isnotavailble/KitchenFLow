@@ -4,7 +4,7 @@
 
 ### 1. Executive Summary
 
-KitchenFlow is a modern, lightweight Restaurant Management and Point of Sale (POS) system designed to streamline operations across the front-of-house (cashiers), back-of-house (chefs), and back-office (owners). By replacing fragmented legacy systems with a single cohesive platform, KitchenFlow reduces order friction, optimizes kitchen output, and provides real-time financial visibility.
+KitchenFlow is a modern, lightweight Restaurant Management, Point of Sale (POS), and Kitchen Display System (KDS) designed to streamline operations across the front-of-house (cashiers), back-of-house (chefs), and back-office (owners). By replacing fragmented legacy systems with a single cohesive platform, KitchenFlow reduces order friction, optimizes kitchen output, and provides real-time financial visibility.
 
 ### 2. User Roles & Personas
 
@@ -33,21 +33,16 @@ KitchenFlow is a modern, lightweight Restaurant Management and Point of Sale (PO
 
 #### Cashier Module (Point of Sale)
 
-- **Order Creation:** Rapidly add items to a ticket from available menu categories.
-
-- **Payment Processing:** Mark orders as paid via cash or card and calculate exact change.
-
+- **Order Creation:** Rapidly add items to a ticket from available menu categories. All orders are treated as pre-paid.
+- **Payment Processing:** Mark orders as paid via cash or card and calculate exact change. 
 - **Ticket Generation:** Generate a human-readable daily ticket number for order tracking.
-
-- **Order Modification:** Cancel or refund orders if mistakes are made before food preparation begins.
+- **Immutable Orders (Self-Service):** Once an order is created, cashiers cannot modify or cancel it. Only the Owner can initiate a cancellation.
 
 #### Kitchen Monitoring Module (Chef)
 
 - **Live Order Tracking:** Display a real-time queue of all ordered dishes, grouped by ticket number.
-
-- **Order-Level Status Updates:** Toggle individual items through states: Waiting, Cooking, Ready, and Served.
-
-- **Completion Alerts:** Trigger visual/audio notifications to the front-of-house when an entire ticket is ready.
+- **Single-Touch Completion:** Toggle tickets via a high-throughput single-touch workflow directly from `Waiting` to `Completed` (No intermediate cooking statuses).
+- **Automated Workload Complexity:** Orders display an algorithmically calculated workload complexity rating (Light, Medium, Heavy) to help chefs prioritize their prep.
 
 #### Reports Module (Owner)
 
