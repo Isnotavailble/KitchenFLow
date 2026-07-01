@@ -1,6 +1,6 @@
 package com.anyawalker.poskds.features.postconstruct;
 
-import com.anyawalker.poskds.models.entities.UserEntity;
+import com.anyawalker.poskds.models.UserEntity;
 import com.anyawalker.poskds.repos.UserRepo;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;

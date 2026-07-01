@@ -1,6 +1,6 @@
 package com.anyawalker.poskds.repos;
 
-import com.anyawalker.poskds.models.entities.OrderItemEntity;
+import com.anyawalker.poskds.models.OrderItemEntity;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

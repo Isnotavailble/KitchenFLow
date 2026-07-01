@@ -2,7 +2,7 @@ package com.anyawalker.poskds.features.auth;
 
 import com.anyawalker.poskds.features.auth.dtos.LoginResponse;
 import com.anyawalker.poskds.features.auth.dtos.TokenResponse;
-import com.anyawalker.poskds.models.entities.UserEntity;
+import com.anyawalker.poskds.models.UserEntity;
 import com.anyawalker.poskds.repos.UserRepo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

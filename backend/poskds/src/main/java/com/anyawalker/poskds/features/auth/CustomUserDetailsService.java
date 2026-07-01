@@ -1,6 +1,6 @@
 package com.anyawalker.poskds.features.auth;
 
-import com.anyawalker.poskds.models.entities.UserEntity;
+import com.anyawalker.poskds.models.UserEntity;
 import com.anyawalker.poskds.repos.UserRepo;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.userdetails.UserDetails;

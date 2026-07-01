@@ -1,7 +1,7 @@
 package com.anyawalker.poskds.features.postconstruct;
 
-import com.anyawalker.poskds.models.entities.CategoryEntity;
-import com.anyawalker.poskds.models.entities.MenuEntity;
+import com.anyawalker.poskds.models.CategoryEntity;
+import com.anyawalker.poskds.models.MenuEntity;
 import com.anyawalker.poskds.repos.CategoryRepo;
 import com.anyawalker.poskds.repos.MenuRepo;
 import jakarta.annotation.PostConstruct;

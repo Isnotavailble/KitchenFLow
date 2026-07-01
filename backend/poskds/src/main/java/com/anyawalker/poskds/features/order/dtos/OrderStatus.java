@@ -1,4 +1,4 @@
-package com.anyawalker.poskds.models.dtos;
+package com.anyawalker.poskds.features.order.dtos;
 
 public enum OrderStatus {
     WAITING("waiting"),

@@ -1,7 +1,7 @@
 package com.anyawalker.poskds.features.menu;
 
 import com.anyawalker.poskds.features.menu.dtos.MenuResponse;
-import com.anyawalker.poskds.models.entities.MenuEntity;
+import com.anyawalker.poskds.models.MenuEntity;
 import com.anyawalker.poskds.repos.MenuRepo;
 import org.springframework.stereotype.Service;
 

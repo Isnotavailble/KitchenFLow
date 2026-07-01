@@ -1,4 +1,4 @@
-package com.anyawalker.poskds.models.entities;
+package com.anyawalker.poskds.models;
 
 import jakarta.persistence.*;
 import java.util.List;
