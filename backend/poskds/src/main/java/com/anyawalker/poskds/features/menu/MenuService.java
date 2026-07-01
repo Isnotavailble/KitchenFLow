@@ -1,7 +1,7 @@
 package com.anyawalker.poskds.features.menu;
 
 import com.anyawalker.poskds.features.menu.dtos.MenuResponse;
-import com.anyawalker.poskds.models.entities.MenuEntity;
+import com.anyawalker.poskds.models.MenuEntity;
 import com.anyawalker.poskds.repos.MenuRepo;
 import org.springframework.stereotype.Service;
 
@@ -23,9 +23,9 @@ public class MenuService {
                 .map(menuEntity ->
                         new MenuResponse(menuEntity.getId(),
                                 menuEntity.getName(),
-                                menuEntity.getCurrentPrice(),
-                                menuEntity.getCookingDuration(),
-                                menuEntity.getCategoryName(),
+                                menuEntity.getPrice(),
+                                menuEntity.getWorkloadTier(),
+                                menuEntity.getCategoryEntity().getName(),
                                 menuEntity.isAvailable(),
                                 menuEntity.getCreatedAt(),
                                 menuEntity.getUpdatedAt())
@@ -33,10 +33,10 @@ public class MenuService {
                 .toList();
     }
 
-    public List<MenuEntity> getMenuEntityListByIds(List<Long> menuIdList){
+    public List<MenuEntity> getMenuEntityListByIds(List<Integer> menuIdList){
         return menuRepo.findAllById(menuIdList);
     }
-    public Map<Long,MenuEntity> getMenuEntityMapByIds(List<Long> menuIdList){
+    public Map<Integer,MenuEntity> getMenuEntityMapByIds(List<Integer> menuIdList){
         //get all menu by list of ids
         List<MenuEntity> menuEntityList = getMenuEntityListByIds(menuIdList);
 

@@ -3,10 +3,10 @@ package com.anyawalker.poskds.features.menu.dtos;
 import java.time.LocalDateTime;
 
 public record MenuResponse(
-    Long id,
+    Integer id,
     String name,
     int currentPrice,
-    String cookingDuration,
+    int workloadTier,
     String categoryName,
     boolean isAvailable,
     LocalDateTime createdAt,
