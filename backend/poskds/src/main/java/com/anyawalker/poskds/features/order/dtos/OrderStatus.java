@@ -2,9 +2,8 @@ package com.anyawalker.poskds.features.order.dtos;
 
 public enum OrderStatus {
     WAITING("waiting"),
-    COOKING("cooking"),
-    COMPLETE("completed"),
-    CANCEL("cancelled");
+    COMPLETED("completed"),
+    CANCELLED("cancelled");
 
     private final String value;
 
