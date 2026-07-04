@@ -31,6 +31,7 @@ public class OrderService {
     private final MenuService menuService;
     private final OrderMapper orderMapper;
     private final EventEmitterService<OrderResponse> eventEmitterService;
+    private final double taxRate = 0.05;
     public OrderService(EventEmitterService<OrderResponse> eventEmitterService,
                         OrderRepo orderRepo,
                         UserRepo userRepo,
@@ -53,8 +54,19 @@ public class OrderService {
 
     @Transactional
     public OrderResponse createOrder(OrderRequest orderRequest, Long userId) {
+
+
+        List<OrderItemRequest> nonNullOrderItemList = orderRequest.orderItems()
+                .stream()
+                .filter(orderItemRequest -> orderItemRequest.quantity() > 0)
+                .toList();
+        //check null before any db call
+        if (nonNullOrderItemList.isEmpty())
+            throw new OrderFailureException("Order has no order items.");
+
         UserEntity orderCreator = userRepo.findById(userId)
                 .orElseThrow(() -> new OrderFailureException("Could not create the order due to invalid user id"));
+
 
         OrderEntity order = new OrderEntity();
         order.setUserEntity(orderCreator);
@@ -69,18 +81,23 @@ public class OrderService {
         Map<Integer, MenuEntity> menuEntityMap = menuService.getMenuEntityMapByIds(menuEntityIds);
 
         //orderItemRequest -> orderItemEntity mapping process
-        AtomicInteger totalOrderPrice = new AtomicInteger();
-        List<OrderItemEntity> orderItemList = orderRequest.orderItems()
+        AtomicInteger totalPriceBeforeTax = new AtomicInteger();
+        int totalPriceAfterTax;
+        int taxAmount;
+
+        List<OrderItemEntity> orderItemList = nonNullOrderItemList
                 .stream()
+                .filter(orderItemRequest -> orderItemRequest.quantity() > 0)
                 .map(orderItemRequest -> {
+
                     MenuEntity menuEntity = menuEntityMap.get(orderItemRequest.menuId());
 
                     if (menuEntity == null)
                         throw new OrderFailureException("Could not create the order due to invalid menu_id with " +
                                 orderItemRequest.menuId());
 
-                    int totalPrice = orderItemRequest.quantity() * menuEntity.getPrice();
-                    totalOrderPrice.addAndGet(totalPrice);
+                    int itemTotalPrice = orderItemRequest.quantity() * menuEntity.getPrice();
+                    totalPriceBeforeTax.addAndGet(itemTotalPrice);
 
                     OrderItemEntity orderItem = new OrderItemEntity();
                     orderItem.setMenuEntity(menuEntity);
@@ -90,9 +107,17 @@ public class OrderService {
                     return orderItem;
                 })
                 .toList();
+
+        taxAmount = (int) Math.round(totalPriceBeforeTax.get() * taxRate);
+        totalPriceAfterTax = totalPriceBeforeTax.get() + taxAmount;
+
+        String orderWorkloadTier = calculateWorkloadTier(orderItemList);
         order.setOrderItemEntityList(orderItemList);
-        order.setTotalPrice(totalOrderPrice.get());
+        order.setSubtotalPrice(totalPriceBeforeTax.get());
+        order.setTaxAmount(taxAmount);
+        order.setTotalPrice(totalPriceAfterTax);
         order.setOrderNumber(generateOrderNumber());
+        order.setOrderWorkloadTier(orderWorkloadTier);
         OrderEntity savedOrder = orderRepo.save(order);
 
         return orderMapper.toResponseDTO(savedOrder,"order created successfully");
@@ -208,7 +233,39 @@ public class OrderService {
         Optional<OrderEntity> todayLatestOrder = orderRepo.findTopByCreatedAtBetweenOrderByOrderNumberDesc(startTime,endTime);
 
         return todayLatestOrder.map(orderEntity -> orderEntity.getOrderNumber() + 1).orElse(1);
+    }
 
+    private String calculateWorkloadTier(List<OrderItemEntity> orderItemEntityList){
+        //0 - 4 (light), 5 - 9 (medium), 10+ (heavy)
+        // Tier 1  = 1 point , Tier 2 medium = 5 points ,Tier 3 heavy = 10 points
+        // quantity by tier * points
+        //Map<tier,point>
+        Map<Integer,Integer> pointsMap = Map.of(
+                1,1,
+                2,5,
+                3,10
+        );
+        //Map<Integer,String> tiers = Map.of(1,"light",2,"medium",3,"heavy");
+        int totalPoints = 0;
+
+        for (OrderItemEntity orderItem : orderItemEntityList){
+
+            int workloadTier = orderItem.getMenuEntity().getWorkloadTier();
+            int orderItemQuantity = orderItem.getQuantity();
+
+            if (pointsMap.get(workloadTier) == null){
+                continue;
+            }
+            totalPoints += pointsMap.get(workloadTier) * orderItemQuantity;
+
+        }
+
+        if (totalPoints < pointsMap.get(2))
+            return OrderWorkloadTier.LIGHT.getValue();
+        else if (totalPoints >= pointsMap.get(2) && totalPoints < pointsMap.get(3))
+            return OrderWorkloadTier.MEDIUM.getValue();
+
+        return OrderWorkloadTier.HEAVY.getValue();
     }
 
 }

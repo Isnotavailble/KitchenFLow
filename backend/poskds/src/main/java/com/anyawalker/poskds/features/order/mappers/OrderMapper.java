@@ -31,8 +31,11 @@ public class OrderMapper {
                 orderEntity.getOrderNumber(),
                 orderEntity.getStatus(),
                 message == null || message.isBlank() ? "" : message,
+                orderEntity.getOrderWorkloadTier(),
                 orderItemResponses,
-                orderEntity.getTotalPrice()
+                orderEntity.getSubtotalPrice(),
+                orderEntity.getTotalPrice(),
+                orderEntity.getTaxAmount()
         );
     }
 }

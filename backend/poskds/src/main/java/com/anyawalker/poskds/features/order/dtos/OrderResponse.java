@@ -7,6 +7,9 @@ public record OrderResponse(Integer id,
                             int orderNumber,
                             String status,
                             String message,
+                            String workloadTier,
                             List<OrderItemResponse> orderItems,
-                            int totalPrice) {
+                            int totalPriceBeforeTax,
+                            int totalPriceAfterTax,
+                            int taxAmount) {
 }
