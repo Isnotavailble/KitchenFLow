@@ -144,7 +144,7 @@ Represents pre-paid customer tickets in a self-service model.
 | `order_number`| `INTEGER` | | Dynamic order number for the day (e.g., counting by day). |
 | `user_id` | `INTEGER` | FK | References `USERS(id)` (Cashier who placed the order; Nullable for self-serve kiosks). |
 | `status` | `VARCHAR(60)` | | Preparation state: `waiting`, `completed`, `cancelled`. |
-| `order_workload_tier`| `INTEGER` | | Snapshot of calculated workload tier (`Total Points = sum(Q * W)`). |
+| `order_workload_tier`| `VARCHAR(60)` | | Snapshot of calculated workload tier (`Total Points = sum(Q * W)`). |
 | `payment_status`| `VARCHAR(60)`| | Payment state: `unpaid`, `paid` (default: `paid`). |
 | `payment_method`| `VARCHAR(60)`| | Payment type: `cash`, `online` (default: `cash`). |
 | `subtotal_price`| `INTEGER` | | Overall order subtotal (before tax/discounts). |
