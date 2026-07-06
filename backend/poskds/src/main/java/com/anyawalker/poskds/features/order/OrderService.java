@@ -30,17 +30,14 @@ public class OrderService {
     private final UserRepo userRepo;
     private final MenuService menuService;
     private final OrderMapper orderMapper;
-    private final EventEmitterService<OrderResponse> eventEmitterService;
-    private final double taxRate = 0.05;
-    public OrderService(EventEmitterService<OrderResponse> eventEmitterService,
-                        OrderRepo orderRepo,
+
+    public OrderService(OrderRepo orderRepo,
                         UserRepo userRepo,
                         MenuService menuService,
                         OrderMapper orderMapper) {
         this.orderRepo = orderRepo;
         this.userRepo = userRepo;
         this.menuService = menuService;
-        this.eventEmitterService = eventEmitterService;
         this.orderMapper = orderMapper;
     }
 
@@ -84,6 +81,7 @@ public class OrderService {
         AtomicInteger totalPriceBeforeTax = new AtomicInteger();
         int totalPriceAfterTax;
         int taxAmount;
+        double taxRate = 0.05;
 
         List<OrderItemEntity> orderItemList = nonNullOrderItemList
                 .stream()
@@ -221,9 +219,7 @@ public class OrderService {
         targetOrderEntity.setStatus(nextStatus);
         OrderEntity savedOrder = orderRepo.save(targetOrderEntity);
 
-        OrderResponse orderResponse = orderMapper.toResponseDTO(savedOrder,"order status updated successfully");
-        eventEmitterService.publish(userRole,userRole + "-update-order",orderResponse);
-        return  orderResponse;
+        return orderMapper.toResponseDTO(savedOrder,"order status updated successfully");
     }
 
     private int generateOrderNumber(){
@@ -242,7 +238,7 @@ public class OrderService {
         //Map<tier,point>
         Map<Integer,Integer> pointsMap = Map.of(
                 1,1,
-                2,5,
+                2,4,
                 3,10
         );
         //Map<Integer,String> tiers = Map.of(1,"light",2,"medium",3,"heavy");
@@ -260,9 +256,9 @@ public class OrderService {
 
         }
 
-        if (totalPoints < pointsMap.get(2))
+        if (totalPoints <= pointsMap.get(2))
             return OrderWorkloadTier.LIGHT.getValue();
-        else if (totalPoints >= pointsMap.get(2) && totalPoints < pointsMap.get(3))
+        else if (totalPoints < pointsMap.get(3))
             return OrderWorkloadTier.MEDIUM.getValue();
 
         return OrderWorkloadTier.HEAVY.getValue();
