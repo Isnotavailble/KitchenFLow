@@ -19,7 +19,7 @@ public class MenuController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> viewMenuById(@PathVariable Long id){
+    public ResponseEntity<?> viewMenuById(@PathVariable Integer id){
         return ResponseEntity.ok(menuService.getMenuById(id));
     }
 
@@ -31,13 +31,13 @@ public class MenuController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<?> updateMenu(@PathVariable Long id, @RequestBody MenuDto.UpdateRequest request){
+    public ResponseEntity<?> updateMenu(@PathVariable Integer id, @RequestBody MenuDto.UpdateRequest request){
         return ResponseEntity.ok(menuService.updateMenu(id, request));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<?> deleteMenu(@PathVariable Long id){
+    public ResponseEntity<?> deleteMenu(@PathVariable Integer id){
         menuService.deleteMenu(id);
         return ResponseEntity.ok().build();
     }

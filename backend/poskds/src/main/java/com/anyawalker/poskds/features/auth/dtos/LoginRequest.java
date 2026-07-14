@@ -1,4 +1,4 @@
 package com.anyawalker.poskds.features.auth.dtos;
 
-public record LoginRequest(String email,String password) {
+public record LoginRequest(String mobileNumber, String password) {
 }

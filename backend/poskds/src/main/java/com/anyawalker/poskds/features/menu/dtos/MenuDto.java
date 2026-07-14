@@ -1,17 +1,21 @@
 package com.anyawalker.poskds.features.menu.dtos;
 
-import com.anyawalker.poskds.models.entities.MenuEntity;
+import com.anyawalker.poskds.models.CategoryEntity;
+import com.anyawalker.poskds.models.MenuEntity;
 import java.time.LocalDateTime;
 
 public class MenuDto {
 
     public record Response(
-        Long id,
+        Integer id,
         String name,
-        int currentPrice,
-        String cookingDuration,
+        int price,
+        String imageUrl,
+        String imageId,
+        Integer categoryId,
         String categoryName,
         boolean isAvailable,
+        int workloadTier,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
     ) {
@@ -19,10 +23,13 @@ public class MenuDto {
             return new Response(
                 entity.getId(),
                 entity.getName(),
-                entity.getCurrentPrice(),
-                entity.getCookingDuration(),
-                entity.getCategoryName(),
+                entity.getPrice(),
+                entity.getImageUrl(),
+                entity.getImageId(),
+                entity.getCategoryEntity() != null ? entity.getCategoryEntity().getId() : null,
+                entity.getCategoryEntity() != null ? entity.getCategoryEntity().getName() : null,
                 entity.isAvailable(),
+                entity.getWorkloadTier(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
             );
@@ -31,35 +38,43 @@ public class MenuDto {
 
     public record CreateRequest(
         String name,
-        int currentPrice,
-        String cookingDuration,
-        String categoryName,
-        boolean isAvailable
+        int price,
+        String imageUrl,
+        String imageId,
+        Integer categoryId,
+        boolean isAvailable,
+        int workloadTier
     ) {
-        public MenuEntity toEntity() {
+        public MenuEntity toEntity(CategoryEntity categoryEntity) {
             MenuEntity entity = new MenuEntity();
             entity.setName(this.name);
-            entity.setCurrentPrice(this.currentPrice);
-            entity.setCookingDuration(this.cookingDuration);
-            entity.setCategoryName(this.categoryName);
+            entity.setPrice(this.price);
+            entity.setImageUrl(this.imageUrl);
+            entity.setImageId(this.imageId);
+            entity.setCategoryEntity(categoryEntity);
             entity.setAvailable(this.isAvailable);
+            entity.setWorkloadTier(this.workloadTier);
             return entity;
         }
     }
 
     public record UpdateRequest(
         String name,
-        int currentPrice,
-        String cookingDuration,
-        String categoryName,
-        boolean isAvailable
+        int price,
+        String imageUrl,
+        String imageId,
+        Integer categoryId,
+        boolean isAvailable,
+        int workloadTier
     ) {
-        public void updateEntity(MenuEntity entity) {
+        public void updateEntity(MenuEntity entity, CategoryEntity categoryEntity) {
             entity.setName(this.name);
-            entity.setCurrentPrice(this.currentPrice);
-            entity.setCookingDuration(this.cookingDuration);
-            entity.setCategoryName(this.categoryName);
+            entity.setPrice(this.price);
+            entity.setImageUrl(this.imageUrl);
+            entity.setImageId(this.imageId);
+            entity.setCategoryEntity(categoryEntity);
             entity.setAvailable(this.isAvailable);
+            entity.setWorkloadTier(this.workloadTier);
         }
     }
 }

@@ -29,12 +29,12 @@ The Spring Boot application is divided into the following root-level directories
 
 Inside the `features/` directory, the code is categorized into core cross-cutting concerns and specific business domains:
 
-- **`features/exceptions/`**: Centralized location for all application exceptions. This includes the `GlobalExceptionHandler.java` (`@ControllerAdvice`), standardized API error responses, and all specific business rule exceptions (e.g., `UserNotFoundException.java`).
-- **`features/mapper/`**: Centralized location for manually written mapping classes (e.g., `UserMapper.java`, `OrderMapper.java`) responsible for converting data between global Entities and feature-specific DTOs.
 - **`features/[FeatureName]/`**: Every business module has a dedicated folder. It contains:
   - **`[FeatureName]Controller.java`**: Exposes the RESTful endpoints, receives requests, delegates processing to the service, and returns structured responses.
   - **`[FeatureName]Service.java`**: The business service class containing the core feature logic, validations, and operations.
-  - **`[FeatureName]DTO.java`**: Request and Response data transfer objects specific to the endpoints of this feature.
+  - **`[FeatureName]/dtos/[CustomName]DTO.java`**: Request and Response data transfer objects specific to the endpoints of this feature.`[CustomName]Type.java` (Enum Object) should be created inside the same folder.
+  - **`[FeatureName]/mappers/[CustomName]Mapper.java`**: Responsible for converting between DTOs and database entities.
+  - **`[FeatureName]/exceptions/[CustomName]Exception.java`**: Custom exceptions specific to this feature.
 
 ---
 
@@ -46,7 +46,7 @@ We leverage Spring's native component scanning for dependency injection across o
 - **Services** must be annotated with `@Service`.
 - **Repositories** must extend Spring Data interfaces and be annotated with `@Repository`.
 - **Mappers** should be annotated with `@Component` so they can be injected into services via standard constructor injection.
-- **Global Exception Handlers** must be annotated with `@ControllerAdvice`.
+- **Error Handlering**: each `@Component` or `@Service` should throw the custom exceptons or runtimeException.Each `@Controller` must catch and handle the exceptions and return a proper response to the client.
 
 ---
 
