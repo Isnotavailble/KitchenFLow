@@ -61,7 +61,7 @@ CREATE TABLE ORDERS (
   order_number INTEGER NOT NULL,
   user_id INTEGER,
   status VARCHAR(60) NOT NULL,
-  order_tier INTEGER DEFAULT NULL,
+  order_workload_tier VARCHAR(60) DEFAULT NULL,-- we use varchar to act like dynamic.
   payment_status VARCHAR(60) DEFAULT 'paid',
   payment_method VARCHAR(60) DEFAULT 'cash',
   subtotal_price INTEGER DEFAULT 0,

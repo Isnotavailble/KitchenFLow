@@ -144,7 +144,7 @@ Represents pre-paid customer tickets in a self-service model.
 | `order_number`| `INTEGER` | | Dynamic order number for the day (e.g., counting by day). |
 | `user_id` | `INTEGER` | FK | References `USERS(id)` (Cashier who placed the order; Nullable for self-serve kiosks). |
 | `status` | `VARCHAR(60)` | | Preparation state: `waiting`, `completed`, `cancelled`. |
-| `order_duration`| `INTEGER` | | Snapshot of calculated workload tier (`Total Points = sum(Q * W)`). |
+| `order_workload_tier`| `VARCHAR(60)` | | Snapshot of calculated workload tier (`Total Points = sum(Q * W)`). |
 | `payment_status`| `VARCHAR(60)`| | Payment state: `unpaid`, `paid` (default: `paid`). |
 | `payment_method`| `VARCHAR(60)`| | Payment type: `cash`, `online` (default: `cash`). |
 | `subtotal_price`| `INTEGER` | | Overall order subtotal (before tax/discounts). |
@@ -173,9 +173,9 @@ Contains the specific items purchased within an order. Line totals are derived d
 
 1. **Pre-Paid Self-Service Operations:** Orders are strictly created upfront with `payment_status = 'paid'`. There is no `cooking` state. Kitchen staff utilize a highly efficient single-touch workflow, advancing an order from `waiting` directly to `completed`.
 2. **Workload Point Calculation:** To give chefs immediate visibility into order complexity without reading item-by-item, `ORDERS.order_duration` stores an algorithmic snapshot calculated as `sum(quantity * workload_tier)`. Ranges translate to:
-   * **Light:** 0-3 points
-   * **Medium:** 4-6 points
-   * **Heavy:** 7+ points
+   * **Light:** 0-4 points
+   * **Medium:** 5-9 points
+   * **Heavy:** 10+ points
 3. **Owner-Exclusive Permissions (Fraud & Shirking Controls):**
    * **Menu Availability:** Only the Owner can toggle a menu item to "unavailable". This prevents "shirking" where lazy kitchen staff disable heavy menu items.
    * **Cancellations:** Only the Owner can cancel a paid order. This prevents cashier-chef collusion to cancel paid tickets and pocket cash.

@@ -73,6 +73,14 @@ public class PreUpdateMenuTable {
             ohnNoKhaukSwew.setWorkloadTier(2); // medium
             menuRepo.save(ohnNoKhaukSwew);
 
+            MenuEntity Meeshay = new MenuEntity();
+            Meeshay.setName("Mee Shay");
+            Meeshay.setCategoryEntity(noodles);
+            Meeshay.setPrice(7800);
+            Meeshay.setAvailable(true);
+            Meeshay.setWorkloadTier(3); // heavy
+            menuRepo.save(Meeshay);
+
             log.info("Menu table seeded successfully.");
         }
     }

@@ -26,8 +26,8 @@ public class OrderEntity {
     @Column(name = "status", nullable = false, length = 60)
     private String status;
 
-    @Column(name = "order_duration")
-    private Integer orderDuration;
+    @Column(name = "order_workload_tier",length = 60,nullable = false)
+    private String orderWorkloadTier;
 
     @Column(name = "payment_status", length = 60)
     private String paymentStatus = "paid";
@@ -63,12 +63,12 @@ public class OrderEntity {
 
     public OrderEntity() {}
 
-    public OrderEntity(Integer orderId, Integer orderNumber, UserEntity userEntity, String status, Integer orderDuration, String paymentStatus, String paymentMethod, Integer subtotalPrice, Integer taxAmount, Integer discountAmount, int totalPrice, LocalDateTime createdAt, LocalDateTime updatedAt, boolean isDeleted, List<OrderItemEntity> orderItemEntityList) {
+    public OrderEntity(Integer orderId, Integer orderNumber, UserEntity userEntity, String status, String orderWorkloadTier, String paymentStatus, String paymentMethod, Integer subtotalPrice, Integer taxAmount, Integer discountAmount, int totalPrice, LocalDateTime createdAt, LocalDateTime updatedAt, boolean isDeleted, List<OrderItemEntity> orderItemEntityList) {
         this.id = orderId;
         this.orderNumber = orderNumber;
         this.userEntity = userEntity;
         this.status = status;
-        this.orderDuration = orderDuration;
+        this.orderWorkloadTier = orderWorkloadTier;
         this.paymentStatus = paymentStatus;
         this.paymentMethod = paymentMethod;
         this.subtotalPrice = subtotalPrice;
@@ -113,12 +113,12 @@ public class OrderEntity {
         this.status = status;
     }
 
-    public Integer getOrderDuration() {
-        return orderDuration;
+    public String getOrderWorkloadTier() {
+        return orderWorkloadTier;
     }
 
-    public void setOrderDuration(Integer orderDuration) {
-        this.orderDuration = orderDuration;
+    public void setOrderWorkloadTier(String orderWorkloadTier) {
+        this.orderWorkloadTier = orderWorkloadTier;
     }
 
     public String getPaymentStatus() {
