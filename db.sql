@@ -13,6 +13,12 @@ CREATE TABLE USERS (
 COMMENT ON COLUMN USERS.password IS 'hashed';
 COMMENT ON COLUMN USERS.role IS 'ROLE_CASHIER, ROLE_CHEF, ROLE_OWNER';
 
+-- Table: CATEGORY
+CREATE TABLE CATEGORY (
+  category_id INTEGER PRIMARY KEY,
+  name VARCHAR(100) NOT NULL
+);
+
 -- Table: TOKENS
 CREATE TABLE TOKENS (
   id INTEGER PRIMARY KEY,
@@ -25,12 +31,6 @@ CREATE TABLE TOKENS (
     FOREIGN KEY (user_id)
     REFERENCES USERS(id)
     ON DELETE CASCADE
-);
-
--- Table: CATEGORY
-CREATE TABLE CATEGORY (
-  category_id INTEGER PRIMARY KEY,
-  name VARCHAR(100) NOT NULL
 );
 
 -- Table: MENU
@@ -61,7 +61,7 @@ CREATE TABLE ORDERS (
   order_number INTEGER NOT NULL,
   user_id INTEGER,
   status VARCHAR(60) NOT NULL,
-  order_workload_tier VARCHAR(60) DEFAULT NULL,-- we use varchar to act like dynamic.
+  order_workload_tier VARCHAR(60) DEFAULT NULL, -- we use varchar to act like dynamic.
   payment_status VARCHAR(60) DEFAULT 'paid',
   payment_method VARCHAR(60) DEFAULT 'cash',
   subtotal_price INTEGER DEFAULT 0,
@@ -80,7 +80,7 @@ CREATE TABLE ORDERS (
 COMMENT ON COLUMN ORDERS.order_number IS 'KF-001, KF-002 (count by day)';
 COMMENT ON COLUMN ORDERS.user_id IS 'Cashier who created it';
 COMMENT ON COLUMN ORDERS.status IS 'waiting, completed, cancelled';
-COMMENT ON COLUMN ORDERS.order_tier IS 'Order level workload tier: light (0-3) < medium (4-6) < heavy (7+) ranking snapshot';
+COMMENT ON COLUMN ORDERS.order_workload_tier IS 'Order level workload tier: light (0-3) < medium (4-6) < heavy (7+) ranking snapshot';
 COMMENT ON COLUMN ORDERS.payment_status IS 'unpaid, paid';
 COMMENT ON COLUMN ORDERS.payment_method IS 'cash, online';
 COMMENT ON COLUMN ORDERS.subtotal_price IS 'Price before tax/discounts';
@@ -107,3 +107,4 @@ CREATE TABLE ORDER_ITEMS (
 );
 
 COMMENT ON COLUMN ORDER_ITEMS.unit_price IS 'Price snapshot at purchase';
+
