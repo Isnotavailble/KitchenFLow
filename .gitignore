@@ -1,3 +1,6 @@
 .agents
 **/application.properties
 poskds_postman_collection.json
+.env
+.env.*
+!.env.example

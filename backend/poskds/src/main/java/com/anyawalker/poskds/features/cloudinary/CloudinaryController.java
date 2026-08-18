@@ -14,7 +14,7 @@ import java.util.Map;
 public class CloudinaryController {
     private final CloudinaryService cloudinaryService;
 
-    @Value("${cloudinary.folder}")
+    @Value("${CLOUDINARY_FOLDER}")
     private String folderPath;
 
     public CloudinaryController(CloudinaryService cloudinaryService) {

@@ -16,14 +16,14 @@ public class CloudinaryService {
         this.cloudinary = cloudinary;
     }
 
+    @SuppressWarnings("unchecked")
     public Map<String, Object> uploadImage(MultipartFile file, String folder) throws IOException {
-        Map<String, Object> options = ObjectUtils.asMap(
-                "folder", folder,
-                "resource_type", "image"
-        );
+
+        Map<String,String> options = Map.of("folder",folder,"resource_type","image");
         return cloudinary.uploader().upload(file.getBytes(), options);
     }
 
+    @SuppressWarnings("unchecked")
     public Map<String, Object> deleteImage(String publicId) throws IOException {
         return cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
     }
