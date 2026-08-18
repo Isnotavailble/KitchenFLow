@@ -46,7 +46,7 @@ public class OrderController {
             Long userId = jwt.getClaim("userId");
             String userRole = jwt.getClaim("role");
             OrderResponse orderResponse = orderService.createOrder(orderRequest,userId);
-            eventEmitterService.publish(userRole,"order-updated",orderResponse);
+            eventEmitterService.publish(userRole,"order-created",orderResponse);
             return ResponseEntity.ok(orderResponse);
 
         } catch (OrderFailureException e) {

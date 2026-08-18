@@ -201,11 +201,11 @@ public class OrderService {
                 OrderStatus.WAITING.getValue(),Set.of(OrderStatus.COMPLETED.getValue(),OrderStatus.CANCELLED.getValue()));
 
         //get by userRole
-        Set<String> grantedAuthorities = authorities.get(userRole);
+        Set<String> grantedAuthorities = authorities.get(userRole) != null ? authorities.get(userRole) : new HashSet<>();
         //check the typo
         String nextStatus = orderStatusRequest.status().trim().toLowerCase();
         //check if the user has right to change status
-        if (!grantedAuthorities.contains(nextStatus))
+        if (grantedAuthorities.isEmpty() || !grantedAuthorities.contains(nextStatus))
             throw new InValidOrderStatusException("Invalid or Unauthorized status cannot be updated for " + userRole);
 
         OrderEntity targetOrderEntity = orderRepo.findById(orderId)

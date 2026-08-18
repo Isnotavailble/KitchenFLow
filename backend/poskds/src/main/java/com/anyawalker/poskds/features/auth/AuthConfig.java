@@ -51,7 +51,7 @@ public class AuthConfig {
                 .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
 
-                        .requestMatchers("/api/auth/**")
+                        .requestMatchers("/api/auth/**", "/swagger", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/scalar")
                         .permitAll()
 
                         .requestMatchers("/api/orders/**")

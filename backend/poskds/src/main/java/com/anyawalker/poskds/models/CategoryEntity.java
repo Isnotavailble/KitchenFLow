@@ -8,6 +8,7 @@ import java.util.List;
 public class CategoryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "category_id")
     private Integer id;
 
     @Column(name = "name", nullable = false, length = 100)
