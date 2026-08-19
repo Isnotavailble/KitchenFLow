@@ -28,10 +28,12 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("User with this name doesn't exist");
 
 
+        UserEntity userEntity = user.get();
         return org.springframework.security.core.userdetails.User.builder()
-                .username(user.get().getMobileNumber())
-                .password(user.get().getPassword())
-                .roles(user.get().getRole().replace("ROLE_",""))
+                .username(userEntity.getMobileNumber())
+                .password(userEntity.getPassword())
+                .roles(userEntity.getRole().replace("ROLE_", ""))
+                .disabled(userEntity.isDeleted()) //activation or deactivation
                 .build();
     }
 }
