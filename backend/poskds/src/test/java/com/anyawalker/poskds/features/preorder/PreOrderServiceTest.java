@@ -75,10 +75,15 @@ class PreOrderServiceTest {
         String code = "123456";
         String redisKey = "pre_order:123456";
 
-        RedisDraft draft = new RedisDraft(List.of(
-                new ItemRequest(1, 2, "Less sugar"),
-                new ItemRequest(2, 1, null)
-        ), System.currentTimeMillis());
+        RedisDraft draft = new RedisDraft(
+                code,
+                "data:image/png;base64,mockqr",
+                List.of(
+                        new ItemRequest(1, 2, "Less sugar"),
+                        new ItemRequest(2, 1, null)
+                ),
+                System.currentTimeMillis()
+        );
 
         String jsonString = objectMapper.writeValueAsString(draft);
         when(valueOperations.get(redisKey)).thenReturn(jsonString);
@@ -119,9 +124,14 @@ class PreOrderServiceTest {
         String code = "123456";
         String redisKey = "pre_order:123456";
 
-        RedisDraft draft = new RedisDraft(List.of(
-                new ItemRequest(1, 1, null)
-        ), System.currentTimeMillis());
+        RedisDraft draft = new RedisDraft(
+                code,
+                "data:image/png;base64,mockqr",
+                List.of(
+                        new ItemRequest(1, 1, null)
+                ),
+                System.currentTimeMillis()
+        );
 
         String jsonString = objectMapper.writeValueAsString(draft);
         when(valueOperations.get(redisKey)).thenReturn(jsonString);

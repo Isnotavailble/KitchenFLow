@@ -43,6 +43,8 @@ public final class PreOrderDto {
     ) {}
 
     public record RedisDraft(
+            String code,
+            String qrImageBase64,
             List<ItemRequest> items,
             long createdAt
     ) {}

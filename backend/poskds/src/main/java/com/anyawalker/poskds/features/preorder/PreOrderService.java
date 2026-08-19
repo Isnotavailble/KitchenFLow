@@ -41,8 +41,9 @@ public class PreOrderService {
     public CreateResponse createPreOrder(CreateRequest request) {
         String code = generateUniqueCode();
         String redisKey = REDIS_PREORDER_PREFIX + code;
+        String qrImageBase64 = QrCodeGenerator.generateQrCodeBase64(code);
 
-        RedisDraft draft = new RedisDraft(request.items(), Instant.now().toEpochMilli());
+        RedisDraft draft = new RedisDraft(code, qrImageBase64, request.items(), Instant.now().toEpochMilli());
         try {
             String json = objectMapper.writeValueAsString(draft);
             redisTemplate.opsForValue().set(redisKey, json, TTL_MINUTES, TimeUnit.MINUTES);
@@ -50,8 +51,6 @@ public class PreOrderService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize pre-order draft to JSON", e);
         }
-
-        String qrImageBase64 = QrCodeGenerator.generateQrCodeBase64(code);
 
         return new CreateResponse(code, qrImageBase64, TTL_SECONDS);
     }
