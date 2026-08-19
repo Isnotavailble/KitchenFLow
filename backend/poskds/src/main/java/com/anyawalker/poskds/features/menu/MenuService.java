@@ -96,15 +96,4 @@ public class MenuService {
         }
     }
 
-    public List<MenuEntity> getMenuEntityListByIds(List<Integer> menuIdList){
-        return menuRepo.findAllById(menuIdList);
-    }
-    public Map<Integer,MenuEntity> getMenuEntityMapByIds(List<Integer> menuIdList){
-        //get all menu by list of ids
-        List<MenuEntity> menuEntityList = getMenuEntityListByIds(menuIdList);
-
-        //create Map for lookup ( faster than list )
-        return menuEntityList.stream()
-                .collect(Collectors.toMap(MenuEntity::getId, menuEntity -> menuEntity));
-    }
 }

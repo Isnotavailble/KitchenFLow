@@ -1,7 +1,5 @@
 package com.anyawalker.poskds.features.order;
 
-import com.anyawalker.poskds.features.eventlistener.EventEmitterService;
-import com.anyawalker.poskds.features.menu.MenuService;
 import com.anyawalker.poskds.features.order.dtos.*;
 import com.anyawalker.poskds.features.order.exceptions.AlreadyUpdatedException;
 import com.anyawalker.poskds.features.order.exceptions.InValidOrderStatusException;
@@ -12,6 +10,7 @@ import com.anyawalker.poskds.models.MenuEntity;
 import com.anyawalker.poskds.models.OrderEntity;
 import com.anyawalker.poskds.models.OrderItemEntity;
 import com.anyawalker.poskds.models.UserEntity;
+import com.anyawalker.poskds.repos.MenuRepo;
 import com.anyawalker.poskds.repos.OrderRepo;
 import com.anyawalker.poskds.repos.UserRepo;
 import org.springframework.stereotype.Service;
@@ -28,16 +27,16 @@ public class OrderService {
 
     private final OrderRepo orderRepo;
     private final UserRepo userRepo;
-    private final MenuService menuService;
+    private final MenuRepo menuRepo;
     private final OrderMapper orderMapper;
 
     public OrderService(OrderRepo orderRepo,
                         UserRepo userRepo,
-                        MenuService menuService,
+                        MenuRepo menuRepo,
                         OrderMapper orderMapper) {
         this.orderRepo = orderRepo;
         this.userRepo = userRepo;
-        this.menuService = menuService;
+        this.menuRepo = menuRepo;
         this.orderMapper = orderMapper;
     }
 
@@ -75,7 +74,15 @@ public class OrderService {
                 .distinct()
                 .toList();
 
-        Map<Integer, MenuEntity> menuEntityMap = menuService.getMenuEntityMapByIds(menuEntityIds);
+        List<MenuEntity> unavailable = menuRepo.findAllByIdInAndIsDeletedTrue(menuEntityIds);
+        if (!unavailable.isEmpty()){
+            String unavailableIdList = unavailable.stream().map(MenuEntity::getId).toList().toString();
+            throw new OrderFailureException("Menu with Id %s is not available".formatted(unavailableIdList));
+        }
+
+        Map<Integer, MenuEntity> menuEntityMap = menuRepo.findAllByIdInAndIsDeletedFalse(menuEntityIds)
+                .stream()
+                .collect(Collectors.toMap(MenuEntity::getId,menuEntity -> menuEntity));
 
         //orderItemRequest -> orderItemEntity mapping process
         AtomicInteger totalPriceBeforeTax = new AtomicInteger();
@@ -149,7 +156,17 @@ public class OrderService {
 
 
         List<Integer> menuIds = orderItemUpdateRequests.stream().map(OrderItemUpdateRequest::menuId).toList();
-        Map<Integer, MenuEntity> menuEntityMap = menuService.getMenuEntityMapByIds(menuIds);
+
+        List<MenuEntity> unavailableMenuList = menuRepo.findAllByIdInAndIsDeletedTrue(menuIds);
+
+        if (!unavailableMenuList.isEmpty()){
+            String unavailableMenuIdList = unavailableMenuList.stream().map(MenuEntity::getName).toList().toString();
+            throw new OrderFailureException("Menu with Ids %s".formatted(unavailableMenuIdList));
+        }
+
+        Map<Integer,MenuEntity> menuEntityMap = menuRepo.findAllByIdInAndIsDeletedFalse(menuIds)
+                .stream()
+                .collect(Collectors.toMap(MenuEntity::getId,menuEntity ->  menuEntity));
 
 
         AtomicInteger orderTotalPrice = new AtomicInteger();
