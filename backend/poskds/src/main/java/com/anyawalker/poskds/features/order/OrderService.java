@@ -68,39 +68,21 @@ public class OrderService {
         order.setUserEntity(orderCreator);
         order.setStatus(OrderStatus.WAITING.getValue());
         //extract all menu id
-        List<Integer> menuEntityIds = orderRequest.orderItems()
-                .stream()
+        List<Integer> menuEntityIds = nonNullOrderItemList.stream()
                 .map(OrderItemRequest::menuId)
                 .distinct()
                 .toList();
 
-        List<MenuEntity> unavailable = menuRepo.findAllByIdInAndIsDeletedTrue(menuEntityIds);
-        if (!unavailable.isEmpty()){
-            String unavailableIdList = unavailable.stream().map(MenuEntity::getId).toList().toString();
-            throw new OrderFailureException("Menu with Id %s is not available".formatted(unavailableIdList));
-        }
-
-        Map<Integer, MenuEntity> menuEntityMap = menuRepo.findAllByIdInAndIsDeletedFalse(menuEntityIds)
-                .stream()
-                .collect(Collectors.toMap(MenuEntity::getId,menuEntity -> menuEntity));
+        Map<Integer, MenuEntity> menuEntityMap = validateAndFetchAvailableMenus(menuEntityIds);
 
         //orderItemRequest -> orderItemEntity mapping process
         AtomicInteger totalPriceBeforeTax = new AtomicInteger();
-        int totalPriceAfterTax;
-        int taxAmount;
         double taxRate = 0.05;
 
         List<OrderItemEntity> orderItemList = nonNullOrderItemList
                 .stream()
-                .filter(orderItemRequest -> orderItemRequest.quantity() > 0)
                 .map(orderItemRequest -> {
-
                     MenuEntity menuEntity = menuEntityMap.get(orderItemRequest.menuId());
-
-                    if (menuEntity == null)
-                        throw new OrderFailureException("Could not create the order due to invalid menu_id with " +
-                                orderItemRequest.menuId());
-
                     int itemTotalPrice = orderItemRequest.quantity() * menuEntity.getPrice();
                     totalPriceBeforeTax.addAndGet(itemTotalPrice);
 
@@ -113,12 +95,13 @@ public class OrderService {
                 })
                 .toList();
 
-        taxAmount = (int) Math.round(totalPriceBeforeTax.get() * taxRate);
-        totalPriceAfterTax = totalPriceBeforeTax.get() + taxAmount;
+        int subtotal = totalPriceBeforeTax.get();
+        int taxAmount = (int) Math.round(subtotal * taxRate);
+        int totalPriceAfterTax = subtotal + taxAmount;
 
         String orderWorkloadTier = calculateWorkloadTier(orderItemList);
         order.setOrderItemEntityList(orderItemList);
-        order.setSubtotalPrice(totalPriceBeforeTax.get());
+        order.setSubtotalPrice(subtotal);
         order.setTaxAmount(taxAmount);
         order.setTotalPrice(totalPriceAfterTax);
         order.setOrderNumber(generateOrderNumber());
@@ -137,12 +120,11 @@ public class OrderService {
                 findByIdAndUserEntity_Id(orderId, userId)
                 .orElseThrow(() -> new OrderFailureException("Order doesn't exist"));
 
-
         if (!orderEntity.getStatus().equals(OrderStatus.WAITING.getValue()))
             throw new OrderFailureException("Cannot update due to order status " +
                     orderEntity.getStatus() +
                     ".Can only update while waiting");
-        //Map<key,value> {"key" : value}
+
         Map<Integer, OrderItemUpdateRequest> nonNullRequests = orderItemUpdateRequests.stream()
                 .filter(orderItemUpdateRequest -> orderItemUpdateRequest.id() != null)
                 .collect(Collectors.toMap(OrderItemUpdateRequest::id, orderItemUpdateRequest -> orderItemUpdateRequest));
@@ -154,25 +136,16 @@ public class OrderService {
                 .stream()
                 .collect(Collectors.toMap(OrderItemEntity::getId, orderItemEntity -> orderItemEntity));
 
+        List<Integer> menuIds = orderItemUpdateRequests.stream()
+                .map(OrderItemUpdateRequest::menuId)
+                .distinct()
+                .toList();
 
-        List<Integer> menuIds = orderItemUpdateRequests.stream().map(OrderItemUpdateRequest::menuId).toList();
-
-        List<MenuEntity> unavailableMenuList = menuRepo.findAllByIdInAndIsDeletedTrue(menuIds);
-
-        if (!unavailableMenuList.isEmpty()){
-            String unavailableMenuIdList = unavailableMenuList.stream().map(MenuEntity::getName).toList().toString();
-            throw new OrderFailureException("Menu with Ids %s".formatted(unavailableMenuIdList));
-        }
-
-        Map<Integer,MenuEntity> menuEntityMap = menuRepo.findAllByIdInAndIsDeletedFalse(menuIds)
-                .stream()
-                .collect(Collectors.toMap(MenuEntity::getId,menuEntity ->  menuEntity));
-
+        Map<Integer, MenuEntity> menuEntityMap = validateAndFetchAvailableMenus(menuIds);
 
         AtomicInteger orderTotalPrice = new AtomicInteger();
 
         for (OrderItemUpdateRequest orderItemUpdateRequest : orderItemUpdateRequests) {
-
             MenuEntity menuEntity = menuEntityMap.get(orderItemUpdateRequest.menuId());
 
             int unitPrice = menuEntity.getPrice();
@@ -181,12 +154,10 @@ public class OrderService {
             orderTotalPrice.addAndGet(totalPrice);
 
             if (existingItems.containsKey(orderItemUpdateRequest.id())) {
-                //update the existing item in list this will direct update the hibernate object
                 OrderItemEntity orderItemEntity = existingItems.get(orderItemUpdateRequest.id());
                 orderItemEntity.setQuantity(quantity);
                 orderItemEntity.setUnitPrice(unitPrice);
                 orderItemEntity.setMenuEntity(menuEntity);
-
             } else {
                 OrderItemEntity orderItemEntity = new OrderItemEntity();
                 orderItemEntity.setMenuEntity(menuEntity);
@@ -194,10 +165,17 @@ public class OrderService {
                 orderItemEntity.setQuantity(quantity);
                 orderItemEntity.setUnitPrice(unitPrice);
                 orderEntity.getOrderItemEntityList().add(orderItemEntity);
-
             }
         }
-        orderEntity.setTotalPrice(orderTotalPrice.get());
+
+        int subtotal = orderTotalPrice.get();
+        int taxAmount = (int) Math.round(subtotal * 0.05);
+        int totalPrice = subtotal + taxAmount;
+
+        orderEntity.setSubtotalPrice(subtotal);
+        orderEntity.setTaxAmount(taxAmount);
+        orderEntity.setTotalPrice(totalPrice);
+        orderEntity.setOrderWorkloadTier(calculateWorkloadTier(orderEntity.getOrderItemEntityList()));
         OrderEntity savedOrder = orderRepo.save(orderEntity);
 
         return orderMapper.toResponseDTO(savedOrder,"order updated successfully");
@@ -279,6 +257,33 @@ public class OrderService {
             return OrderWorkloadTier.MEDIUM.getValue();
 
         return OrderWorkloadTier.HEAVY.getValue();
+    }
+    private Map<Integer, MenuEntity> validateAndFetchAvailableMenus(List<Integer> menuIds) {
+        List<MenuEntity> menuList = menuRepo.findAllById(menuIds);
+        Map<Integer, MenuEntity> menuEntityMap = menuList.stream()
+                .collect(Collectors.toMap(MenuEntity::getId, m -> m));
+
+        for (Integer id : menuIds) {
+            MenuEntity menu = menuEntityMap.get(id);
+            if (menu == null || menu.isDeleted()) {
+                throw new OrderFailureException("Menu item with ID " + id + " does not exist");
+            }
+        }
+
+        List<String> unavailableMenuNames = menuList.stream()
+                .filter(m -> !m.isAvailable())
+                .map(MenuEntity::getName)
+                .toList();
+
+        if (!unavailableMenuNames.isEmpty()) {
+            if (unavailableMenuNames.size() == 1) {
+                throw new OrderFailureException(unavailableMenuNames.get(0) + " is not available");
+            } else {
+                throw new OrderFailureException(String.join(", ", unavailableMenuNames) + " are not available");
+            }
+        }
+
+        return menuEntityMap;
     }
 
 }

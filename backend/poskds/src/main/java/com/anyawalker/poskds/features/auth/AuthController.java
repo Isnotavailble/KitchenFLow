@@ -39,7 +39,7 @@ public class AuthController {
         }
         catch (AuthenticationException e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("status","fail to authenticate"));
+                    .body(Map.of("error", "fail to authenticate"));
         }
     }
     @PostMapping("/refresh")
@@ -50,18 +50,19 @@ public class AuthController {
         }
         catch (AuthenticationException e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("status","fail to authenticate"));
+                    .body(Map.of("error", "fail to authenticate"));
         }
         //avoid using invalid token or outdated refreshToken to be refresh
         catch (InvalidRefreshTokenException e) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("status", e.getMessage()));
+                    .body(Map.of("error", e.getMessage()));
         }
         //avoid too early refresh
         catch (TooEarlyException e){
             return ResponseEntity
-                    .ok(Map.of("status",e.getMessage()));
+                    .status(HttpStatus.TOO_EARLY)
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 

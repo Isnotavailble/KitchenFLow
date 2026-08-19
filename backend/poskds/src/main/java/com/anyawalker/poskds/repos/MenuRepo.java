@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface MenuRepo extends JpaRepository<@NonNull MenuEntity,@NonNull Integer> {
-    List<MenuEntity> findAllByIdInAndIsDeletedTrue(List<Integer> menuIdList);
-    List<MenuEntity> findAllByIdInAndIsDeletedFalse(List<Integer> menuIdList);
+    List<MenuEntity> findAllByIdInAndIsAvailableTrue(List<Integer> menuIdList);
+    List<MenuEntity> findAllByIdInAndIsAvailableFalse(List<Integer> menuIdList);
 }

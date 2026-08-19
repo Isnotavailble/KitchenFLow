@@ -28,7 +28,7 @@ public class TokenEntity {
     private boolean isRevoked = false;
 
     @CreatedDate
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     public TokenEntity() {}

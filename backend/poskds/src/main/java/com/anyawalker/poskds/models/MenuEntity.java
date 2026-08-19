@@ -39,7 +39,7 @@ public class MenuEntity {
     private Integer workloadTier = 1;
 
     @CreatedDate
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate

@@ -5,6 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("api/menu")
 public class MenuController {
@@ -39,6 +41,12 @@ public class MenuController {
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<?> deleteMenu(@PathVariable Integer id){
         menuService.deleteMenu(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(Map.of("message","menu with Id" + id + "is deleted."));
+    }
+
+    @PatchMapping("/{id}/toggle")
+    @PreAuthorize(("hasAuthority('ROLE_ADMIN')"))
+    public ResponseEntity<?> toggleMenuItems(@PathVariable Integer id,@RequestParam Boolean value){
+        return ResponseEntity.ok(menuService.toggleMenuItem(id,value));
     }
 }
