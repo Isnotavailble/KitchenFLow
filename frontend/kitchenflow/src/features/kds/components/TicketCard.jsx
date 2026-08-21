@@ -53,67 +53,57 @@ export default function TicketCard({ ticket }) {
             </span>
           </div>
 
-          <div className="flex flex-col items-end space-y-1">
-            <span className="text-xs font-semibold text-zinc-400">
-              {elapsed}
+          <div className="text-right pt-0.5">
+            <span className={`text-[11px] font-medium block transition-colors duration-300 ${isCompleted ? 'text-zinc-400' : (elapsed?.colorClass || 'text-zinc-400')}`}>
+              {elapsed?.formatted || 'Just now'}
             </span>
-            <WorkloadBadge tier={ticket.workloadTier} />
           </div>
         </div>
 
-        {/* Bottom Row: Badges aligned cleanly */}
-        <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-zinc-100/80">
-          <Badge
-            variant={isTakeaway ? 'info' : 'brand'}
-            size="sm"
-            icon={isTakeaway ? ShoppingBag : Utensils}
-          >
-            {isTakeaway ? 'Takeaway' : 'Dine In'}
-          </Badge>
-
-          {isCancelled ? (
-            <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 text-[11px] font-bold">
-              Cancelled
+        {/* Badges Row: Status, Order Type (Dine-In/Takeaway), and Workload */}
+        <div className="flex flex-wrap items-center gap-1.5 mt-2">
+          <Badge status={ticket.status} className="text-xs px-2 py-0.5" />
+          {ticket.orderType && (
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-zinc-100 text-zinc-700 border border-zinc-200 flex items-center space-x-1">
+              {isTakeaway ? (
+                <>
+                  <ShoppingBag className="w-3 h-3 text-zinc-500" />
+                  <span>Takeaway</span>
+                </>
+              ) : (
+                <>
+                  <Utensils className="w-3 h-3 text-zinc-500" />
+                  <span>Dine-In</span>
+                </>
+              )}
             </span>
-          ) : isCompleted ? (
-            <span className="px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-600 text-[11px] font-bold">
-              Ready
-            </span>
-          ) : (
-            <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[11px] font-bold border border-amber-200/50">
-              In Kitchen
-            </span>
+          )}
+          {ticket.workloadTier && (
+            <WorkloadBadge tier={ticket.workloadTier} />
           )}
         </div>
       </div>
 
-      {/* 2. Scrollable Items Area */}
-      <div className="flex-1 overflow-y-auto py-3 space-y-3 min-h-0 pr-1">
+      {/* 2. Scrollable Order Items List */}
+      <div className="flex-1 min-h-0 py-3.5 pr-1.5 space-y-3.5 overflow-y-auto">
         {ticket.items.map((item, idx) => (
-          <div
-            key={idx}
-            className="flex items-start space-x-3 p-2 rounded-xl hover:bg-zinc-50/70 transition-colors"
-          >
-            {/* Food Thumbnail Photo with Fallback */}
+          <div key={idx} className="flex items-start space-x-3 text-xs">
+            {/* Thumbnail Image or Empty State Icon Placeholder */}
             <ItemThumbnail image={item.image} name={item.name} />
 
-            {/* Item Details */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-baseline space-x-2">
-                <span className="text-sm font-black text-[#FF5C39] font-sans">
-                  {item.qty}×
-                </span>
-                <span className="text-sm font-bold text-zinc-800 truncate">
-                  {item.name}
-                </span>
-              </div>
-
-              {/* Customization Notes */}
+            {/* Title, Description & Customization Note */}
+            <div className="flex-1 min-w-0 pr-1">
+              <span className="font-bold text-zinc-900 text-xs sm:text-sm leading-snug block">
+                {item.qty}x {item.name}
+              </span>
+              {item.desc && (
+                <p className="text-[11px] sm:text-xs text-zinc-500 leading-tight mt-0.5 font-normal">
+                  {item.desc}
+                </p>
+              )}
               {item.itemCustomization && (
-                <div className="mt-1">
-                  <span className="inline-block px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-semibold border border-amber-200/60 leading-tight">
-                    Note: {item.itemCustomization}
-                  </span>
+                <div className="mt-1 inline-block bg-orange-50 border border-orange-200/80 text-amber-900 px-2 py-0.5 rounded text-[11px] font-medium">
+                  <span className="font-bold text-[#FF5C39]">Note:</span> {item.itemCustomization}
                 </div>
               )}
             </div>
@@ -121,8 +111,8 @@ export default function TicketCard({ ticket }) {
         ))}
       </div>
 
-      {/* 3. Bottom Action Footer */}
-      <div className="pt-3 border-t border-zinc-100 shrink-0">
+      {/* 3. Fixed Card Footer */}
+      <div className="pt-2 shrink-0">
         {isCancelled ? (
           <div className="py-2.5 text-center text-xs font-semibold text-rose-500 bg-rose-50 rounded-xl border border-rose-100">
             Order Cancelled

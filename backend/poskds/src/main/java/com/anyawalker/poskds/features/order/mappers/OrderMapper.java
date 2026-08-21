@@ -3,8 +3,6 @@ package com.anyawalker.poskds.features.order.mappers;
 import com.anyawalker.poskds.features.order.dtos.OrderItemResponse;
 import com.anyawalker.poskds.features.order.dtos.OrderResponse;
 import com.anyawalker.poskds.models.OrderEntity;
-import jakarta.annotation.Nullable;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -20,22 +18,23 @@ public class OrderMapper {
 
     public OrderResponse toResponseDTO(OrderEntity orderEntity, String message){
 
-        List<OrderItemResponse> orderItemResponses = orderEntity.getOrderItemEntityList()
-                .stream()
-                .map(orderItemMapper::toResponseDto)
-                .toList();
+        List<OrderItemResponse> orderItemResponses = orderEntity.getOrderItemEntityList() != null
+                ? orderEntity.getOrderItemEntityList().stream().map(orderItemMapper::toResponseDto).toList()
+                : List.of();
 
         return new OrderResponse(
                 orderEntity.getId(),
-                orderEntity.getUserEntity().getId(),
-                orderEntity.getOrderNumber(),
+                orderEntity.getUserEntity() != null ? orderEntity.getUserEntity().getId() : null,
+                orderEntity.getOrderNumber() != null ? orderEntity.getOrderNumber() : 0,
                 orderEntity.getStatus(),
                 message == null || message.isBlank() ? "" : message,
                 orderEntity.getOrderWorkloadTier(),
                 orderItemResponses,
-                orderEntity.getSubtotalPrice(),
+                orderEntity.getSubtotalPrice() != null ? orderEntity.getSubtotalPrice() : 0,
                 orderEntity.getTotalPrice(),
-                orderEntity.getTaxAmount()
+                orderEntity.getTaxAmount() != null ? orderEntity.getTaxAmount() : 0,
+                orderEntity.getCreatedAt(),
+                orderEntity.getUpdatedAt()
         );
     }
 }

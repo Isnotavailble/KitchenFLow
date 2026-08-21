@@ -63,6 +63,9 @@ public class AuthConfig {
                         .requestMatchers(HttpMethod.GET, "/api/menu/**")
                         .permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**", "/api/categories")
+                        .permitAll()
+
                         .requestMatchers(HttpMethod.POST, "/api/pre-orders/**", "/api/pre-orders")
                         .permitAll()
 

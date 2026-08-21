@@ -3,7 +3,7 @@ import { getElapsedTime } from '../utils/timeFormatter'
 
 export const kdsApi = {
   async getOrders({ status = 'All', searchOrderNumber = '', menuFilter = 'ALL', page = 0, size = 20 } = {}) {
-    // 1. Fetch live orders from backend
+    // 1. Fetch live orders from backend API
     const rawOrders = await orderApi.viewAllOrders()
     let list = Array.isArray(rawOrders)
       ? rawOrders.map((o) => {
@@ -16,17 +16,19 @@ export const kdsApi = {
             order_number: `#${o.orderNumber || o.id}`,
             orderNumberInt: o.orderNumber || o.id,
             orderType: o.orderType || 'takeaway',
-            created_at: o.createdAt || new Date().toISOString(),
-            completed_at: isCompleted ? (o.updatedAt || new Date().toISOString()) : null,
-            cancelled_at: isCancelled ? (o.updatedAt || new Date().toISOString()) : null,
+            created_at: o.createdAt || o.created_at || null,
+            completed_at: isCompleted ? (o.updatedAt || o.updated_at || null) : null,
+            cancelled_at: isCancelled ? (o.updatedAt || o.updated_at || null) : null,
             status: isCompleted ? 'Completed' : isCancelled ? 'Cancelled' : 'Waiting',
             workloadTier: o.workloadTier === '1' || o.workloadTier === 1 || o.workloadTier === 'light' ? 'light' :
                           o.workloadTier === '3' || o.workloadTier === 3 || o.workloadTier === 'heavy' ? 'heavy' : 'medium',
             items: (o.orderItems || []).map((i) => ({
               name: i.menuName || 'Item',
+              category: i.categoryName || i.category || 'General',
               qty: i.quantity || 1,
               desc: '',
               price: i.unitPrice ? i.unitPrice / 100 : 0,
+              image: i.imageUrl || i.image || i.menuImageUrl || null,
               itemCustomization: i.itemNote || null
             }))
           }
@@ -44,7 +46,7 @@ export const kdsApi = {
       list = list.filter((o) => o.status === 'Completed')
     }
 
-    // 3. Search Filter
+    // 3. Integer Order Number Search Filter
     if (searchOrderNumber && String(searchOrderNumber).trim() !== '') {
       const targetStr = String(searchOrderNumber).trim()
       list = list.filter((o) => {
@@ -53,14 +55,19 @@ export const kdsApi = {
       })
     }
 
-    // 4. Menu Item Filter
+    // 4. Category & Menu Item Filter
     if (menuFilter && menuFilter !== 'ALL') {
       list = list.filter((o) =>
-        o.items.some((item) => item.name.toLowerCase() === menuFilter.toLowerCase())
+        o.items.some((item) => {
+          const itemCat = (item.category || '').toLowerCase()
+          const itemName = (item.name || '').toLowerCase()
+          const filterLower = menuFilter.toLowerCase()
+          return itemCat === filterLower || itemName === filterLower
+        })
       )
     }
 
-    // Sort FIFO or Newest Completed
+    // Sort FIFO (or newest completed first for complete tab)
     if (status === 'Complete') {
       list.sort((a, b) => new Date(b.completed_at || b.created_at).getTime() - new Date(a.completed_at || a.created_at).getTime())
     } else {

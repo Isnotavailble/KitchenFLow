@@ -16,12 +16,12 @@ export default function PosPage() {
   }, [reloadMenu])
 
   return (
-    <div className="w-screen h-screen overflow-hidden flex flex-col bg-[#ECEEF1] select-none font-sans antialiased">
+    <div className="w-full h-full overflow-hidden flex flex-col bg-[#ECEEF1] select-none font-sans antialiased">
       {/* Top Header */}
       <PosHeader />
 
       {/* Main Workspace: Menu Grid on Left, Billing Register on Right */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <CategoryTabs />
           <MenuCardGrid />

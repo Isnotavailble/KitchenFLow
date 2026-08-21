@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, UtensilsCrossed, Plus, LayoutGrid, List as ListIcon } from 'lucide-react'
 import { menuApi } from './api/menuApi'
 import { imageApi } from './api/imageApi'
 import { useToast } from '../../hooks/useToast'
-import MenuHeader from './components/MenuHeader'
+import AdminPageHeader from '../../components/AdminPageHeader'
 import MenuToolbar from './components/MenuToolbar'
 import MenuCardView from './components/MenuCardView'
 import MenuTableView from './components/MenuTableView'
@@ -304,23 +304,62 @@ export default function MenuPage() {
 
   return (
     <div className="w-full h-full overflow-y-auto bg-[#ECEEF1] font-sans select-none flex flex-col min-h-0">
-      {/* 1. Sticky Navigation Header */}
-      <MenuHeader />
+      {/* 1. Standard Management Page Header */}
+      <AdminPageHeader title="Menu Catalog">
+        {viewMode === 'list' && (
+          <>
+            {/* View Switcher (Grid vs Table) */}
+            <div className="bg-white border border-zinc-200/90 rounded-xl p-0.5 flex items-center shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setLayoutMode('grid')}
+                className={`p-1.5 rounded-lg transition cursor-pointer ${
+                  layoutMode === 'grid'
+                    ? 'bg-zinc-100 text-zinc-900 font-bold'
+                    : 'text-zinc-400 hover:text-zinc-700'
+                }`}
+                title="Card Grid View"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setLayoutMode('table')}
+                className={`p-1.5 rounded-lg transition cursor-pointer ${
+                  layoutMode === 'table'
+                    ? 'bg-zinc-100 text-zinc-900 font-bold'
+                    : 'text-zinc-400 hover:text-zinc-700'
+                }`}
+                title="Table View"
+              >
+                <ListIcon className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Create New Menu Button */}
+            <button
+              type="button"
+              onClick={handleOpenCreate}
+              className="h-8 px-3.5 bg-[#FF5C39] hover:bg-[#F04D28] text-white text-xs font-bold rounded-xl shadow-xs transition active:scale-[0.96] flex items-center space-x-1.5 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Create Menu</span>
+            </button>
+          </>
+        )}
+      </AdminPageHeader>
 
       {/* 2. Main Page Area */}
-      <main className="p-5 sm:p-6 w-full max-w-7xl mx-auto space-y-4 pb-20">
+      <div className="p-5 sm:p-6 w-full max-w-7xl mx-auto space-y-4 pb-20 flex-1">
         {viewMode === 'list' ? (
           <>
-            {/* Toolbar: Title, Categories, Search & View Switcher */}
+            {/* Toolbar: Categories & Search */}
             <MenuToolbar
               categories={categories}
               selectedCategory={selectedCategory}
               onSelectCategory={setSelectedCategory}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
-              layoutMode={layoutMode}
-              onLayoutChange={setLayoutMode}
-              onOpenCreate={handleOpenCreate}
             />
 
             {/* Content List: Cards or Table */}
@@ -378,7 +417,7 @@ export default function MenuPage() {
             onCancel={() => setViewMode('list')}
           />
         )}
-      </main>
+      </div>
     </div>
   )
 }

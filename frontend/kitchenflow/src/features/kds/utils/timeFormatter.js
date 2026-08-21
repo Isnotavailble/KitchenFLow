@@ -1,6 +1,12 @@
+export function parseTimestampMs(createdAt) {
+  if (!createdAt) return null
+  if (typeof createdAt === 'number') return createdAt
+  if (createdAt instanceof Date) return createdAt.getTime()
+  return new Date(createdAt).getTime()
+}
+
 /**
  * Formats a timestamp into human-readable relative time (minutes/hours ago).
- * Eliminates second-level intervals to maximize performance and prevent UI thrashing.
  *
  * Examples:
  * - < 1 min: "Just now"
@@ -25,7 +31,17 @@ export function getElapsedTime(createdAt) {
     }
   }
 
-  const createdTime = new Date(createdAt).getTime()
+  const createdTime = parseTimestampMs(createdAt)
+  if (createdTime == null || isNaN(createdTime)) {
+    return {
+      formatted: 'Just now',
+      mins: 0,
+      threshold: 'fresh',
+      isPriority: false,
+      colorClass: 'text-emerald-600'
+    }
+  }
+
   const now = Date.now()
   const diffMs = Math.max(0, now - createdTime)
   const mins = Math.floor(diffMs / 60000)
