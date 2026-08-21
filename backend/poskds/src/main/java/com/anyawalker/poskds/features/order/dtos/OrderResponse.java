@@ -1,5 +1,6 @@
 package com.anyawalker.poskds.features.order.dtos;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record OrderResponse(Integer id,
@@ -11,5 +12,7 @@ public record OrderResponse(Integer id,
                             List<OrderItemResponse> orderItems,
                             int totalPriceBeforeTax,
                             int totalPriceAfterTax,
-                            int taxAmount) {
+                            int taxAmount,
+                            LocalDateTime createdAt,
+                            LocalDateTime updatedAt) {
 }

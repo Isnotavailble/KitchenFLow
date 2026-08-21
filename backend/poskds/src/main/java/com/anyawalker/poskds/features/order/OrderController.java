@@ -44,7 +44,7 @@ public class OrderController {
     public ResponseEntity<?> createOrder(@RequestBody OrderRequest orderRequest,@AuthenticationPrincipal Jwt jwt){
         try{
             Long userId = jwt.getClaim("userId");
-            String userRole = jwt.getClaim("role");
+            String userRole = "ROLE_" + jwt.getClaim("role");
             OrderResponse orderResponse = orderService.createOrder(orderRequest,userId);
             eventEmitterService.publish(userRole,"order-created",orderResponse);
             return ResponseEntity.ok(orderResponse);
@@ -53,20 +53,6 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
-    // deprecated due to immutable order entity
-//    @PatchMapping("/update_order_items/{orderId}")
-//    @PreAuthorize("hasAnyAuthority('ROLE_CASHIER','ROLE_ADMIN')")
-//    public ResponseEntity<?> updateOrderItem(@PathVariable Integer orderId,
-//                                             @RequestBody Map<String, List<OrderItemUpdateRequest>> orderRequest,
-//                                             @AuthenticationPrincipal Jwt jwt){
-//        try {
-//            Long userId = jwt.getClaim("userId");
-//            return ResponseEntity.ok(orderService.updateOrderItems(orderId,orderRequest.get("orderItems"),userId));
-//        }
-//        catch (OrderFailureException e){
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
-//        }
-//    }
 
     @PatchMapping("/update_order_status/{orderId}")
     public ResponseEntity<?> updateOrderStatus(@PathVariable Integer orderId, @RequestBody OrderStatusRequest orderStatusRequest,
@@ -89,15 +75,21 @@ public class OrderController {
     //updated : let the system create route for connections
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter getEvent(@AuthenticationPrincipal Jwt jwt){
-        String role = jwt.getClaim("role");
+        String role = "ROLE_" + jwt.getClaim("role");
 
         List<String> roles = new ArrayList<>(List.of("ROLE_ADMIN","ROLE_CASHIER","ROLE_CHEF"));
         roles.remove(role);
-        SseEmitter sseEmitter = new SseEmitter(Duration.ofMinutes(5).toMillis());
+        SseEmitter sseEmitter = new SseEmitter(Duration.ofHours(1).toMillis());
 
         //listen all channel except their own.
         //warning : the client may receive the O(N) message.
         roles.forEach(r -> eventEmitterService.subscribe(r,sseEmitter));
+
+        try {
+            sseEmitter.send(SseEmitter.event().name("INIT").data("connected"));
+        } catch (IOException e) {
+            // handshake error
+        }
 
         return sseEmitter;
     }

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { AuthContext } from './authContextDef'
-import { DEMO_USERS } from '../types/demoUsers'
+import { apiClient } from '../../../api/apiClient'
+import { stopGlobalStream } from '../../../services/sseService'
 
 export function AuthProvider({ children }) {
-  // Initialize with Cashier as default or persisted user
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('kitchenflow_user')
-      return saved ? JSON.parse(saved) : DEMO_USERS.cashier
+      return saved ? JSON.parse(saved) : null
     } catch {
-      return DEMO_USERS.cashier
+      return null
     }
   })
 
@@ -19,58 +19,55 @@ export function AuthProvider({ children }) {
         localStorage.setItem('kitchenflow_user', JSON.stringify(user))
       } else {
         localStorage.removeItem('kitchenflow_user')
+        localStorage.removeItem('kf_access_token')
+        localStorage.removeItem('kf_refresh_token')
+        stopGlobalStream()
       }
     } catch {
       // ignore storage errors
     }
   }, [user])
 
-  const login = (mobileNumber, password) => {
-    const found = Object.values(DEMO_USERS).find((u) => u.mobileNumber === mobileNumber)
-    if (found) {
-      setUser(found)
-      return { success: true, user: found }
-    }
-
-    if (mobileNumber && password) {
-      const newUser = {
-        id: Date.now(),
-        username: `User ${mobileNumber.slice(-4)}`,
-        mobileNumber,
-        role: 'ROLE_CASHIER',
-        shift: 'Main Counter'
+  const login = async (mobileNumber, password) => {
+    try {
+      const response = await apiClient.post('/auth/login', { mobileNumber, password })
+      if (response && response.token) {
+        const userData = {
+          id: response.userId,
+          username: response.username || (response.role === 'ROLE_ADMIN' ? 'Owner / Admin' : response.role === 'ROLE_CHEF' ? 'Chef' : 'Cashier'),
+          mobileNumber: response.mobileNumber || mobileNumber,
+          role: response.role,
+          token: response.token
+        }
+        localStorage.setItem('kf_access_token', response.token.accessToken)
+        localStorage.setItem('kf_refresh_token', response.token.refreshToken)
+        setUser(userData)
+        return { success: true, user: userData }
       }
-      setUser(newUser)
-      return { success: true, user: newUser }
+      return { success: false, error: 'Invalid response from server' }
+    } catch (err) {
+      console.error('API login error:', err)
+      return { success: false, error: err?.data?.error || err?.message || 'Invalid credentials' }
     }
-
-    return { success: false, error: 'Invalid mobile number or password' }
-  }
-
-  const loginAs = (roleKey) => {
-    const target = DEMO_USERS[roleKey]
-    if (target) {
-      setUser(target)
-      return target
-    }
-    return null
   }
 
   const logout = () => {
+    stopGlobalStream()
     setUser(null)
+    localStorage.removeItem('kitchenflow_user')
+    localStorage.removeItem('kf_access_token')
+    localStorage.removeItem('kf_refresh_token')
   }
-
-  const isAuthenticated = !!user
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated,
-        role: user?.role || null,
+        setUser,
         login,
-        loginAs,
-        logout
+        logout,
+        isAuthenticated: !!user,
+        role: user?.role
       }}
     >
       {children}

@@ -8,10 +8,17 @@ import org.springframework.stereotype.Component;
 public class OrderItemMapper {
 
     public OrderItemResponse toResponseDto(OrderItemEntity orderItemEntity){
-        return  new OrderItemResponse(
+        String imageUrl = orderItemEntity.getMenuEntity() != null ? orderItemEntity.getMenuEntity().getImageUrl() : null;
+        String categoryName = orderItemEntity.getMenuEntity() != null && orderItemEntity.getMenuEntity().getCategoryEntity() != null
+                ? orderItemEntity.getMenuEntity().getCategoryEntity().getName()
+                : "General";
+
+        return new OrderItemResponse(
                 orderItemEntity.getId(),
-                orderItemEntity.getMenuEntity().getId(),
-                orderItemEntity.getMenuEntity().getName(),
+                orderItemEntity.getMenuEntity() != null ? orderItemEntity.getMenuEntity().getId() : null,
+                orderItemEntity.getMenuEntity() != null ? orderItemEntity.getMenuEntity().getName() : "Item",
+                categoryName,
+                imageUrl,
                 orderItemEntity.getQuantity(),
                 orderItemEntity.getUnitPrice(),
                 orderItemEntity.getItemNotes());

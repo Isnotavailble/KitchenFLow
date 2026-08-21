@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Search, X, ChevronDown } from 'lucide-react'
 import { useKds } from '../hooks/useKds'
-import { MENU_ITEMS_LIST } from '../api/seedData'
 
 export default function KdsFilterRow() {
   const {
@@ -10,7 +9,8 @@ export default function KdsFilterRow() {
     searchOrderNumber,
     setSearchOrderNumber,
     menuFilter,
-    setMenuFilter
+    setMenuFilter,
+    categories = []
   } = useKds()
 
   const [localInput, setLocalInput] = useState(searchOrderNumber)
@@ -43,11 +43,11 @@ export default function KdsFilterRow() {
     setSearchOrderNumber('')
   }
 
-  const isMenuActive = menuFilter !== 'ALL'
+  const isCategoryActive = menuFilter !== 'ALL'
 
   return (
     <div className="px-6 pt-5 pb-4 flex flex-wrap items-center justify-between gap-3.5 select-none shrink-0">
-      {/* Left: Status Filter Buttons (Stable geometry with permanent 1px border) */}
+      {/* Left: Status Filter Buttons */}
       <div className="flex items-center space-x-2.5">
         {filters.map((filter) => {
           const isActive = activeFilter === filter
@@ -68,9 +68,9 @@ export default function KdsFilterRow() {
         })}
       </div>
 
-      {/* Right Controls: [Search Input + Search Button] [Menu filter] */}
+      {/* Right Controls: [Search Input + Search Button] [Database Category Filter] */}
       <div className="flex items-center space-x-2.5">
-        {/* 1. Integer Order Number Search Form (Triggered only on Enter or Search Button click) */}
+        {/* 1. Integer Order Number Search Form */}
         <form onSubmit={handleSearchSubmit} className="flex items-center space-x-1.5">
           <div className="relative flex items-center">
             <div className="absolute left-3.5 pointer-events-none text-zinc-400">
@@ -107,22 +107,22 @@ export default function KdsFilterRow() {
           </button>
         </form>
 
-        {/* 2. Menu Item Filter Dropdown */}
+        {/* 2. Real Database Category Filter Dropdown */}
         <div className="relative inline-flex items-center w-fit">
           <select
             value={menuFilter}
             onChange={(e) => setMenuFilter(e.target.value)}
             className={`pl-4 pr-8 py-2 w-auto min-w-[140px] max-w-[240px] bg-white rounded-xl text-xs font-semibold text-zinc-800 shadow-xs transition-all duration-200 cursor-pointer appearance-none outline-none focus:outline-none ${
-              isMenuActive
+              isCategoryActive
                 ? 'border border-[#FF5C39] focus:border-[#FF5C39]'
                 : 'hover:bg-zinc-50/80 border border-zinc-200/90 focus:border-[#FF5C39]'
             }`}
-            title="Filter by specific menu item"
+            title="Filter orders by database category"
           >
-            <option value="ALL">All Menu Items</option>
-            {MENU_ITEMS_LIST.map((item) => (
-              <option key={item} value={item}>
-                {item}
+            <option value="ALL">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
               </option>
             ))}
           </select>

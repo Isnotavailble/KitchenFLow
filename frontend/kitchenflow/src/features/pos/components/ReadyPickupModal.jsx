@@ -9,8 +9,7 @@ function NotificationItem({ order, onMarkAsRead }) {
 
   return (
     <div className="p-3.5 hover:bg-zinc-50/80 transition flex items-center justify-between gap-3 select-none border-b border-zinc-100 last:border-b-0">
-      <div className="flex items-start space-x-2.5 min-w-0 flex-1">
-        <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+      <div className="flex items-start min-w-0 flex-1">
         <div className="min-w-0 flex-1">
           <p className="text-xs text-zinc-800 leading-snug font-medium">
             <strong className="text-zinc-900 font-bold font-sans">{order.order_number}</strong>{' '}

@@ -125,7 +125,7 @@ public class TokenService {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("poskds-backend")
                 .issuedAt(now)
-                .expiresAt(now.plus(15, ChronoUnit.MINUTES))
+                .expiresAt(now.plus(1, ChronoUnit.DAYS))
                 .subject(userEntity.getMobileNumber())
                 .claim("userId", userEntity.getId())
                 // we need to remove the prefix because jwtAuthoritiesConverter will generate the converter on fly
