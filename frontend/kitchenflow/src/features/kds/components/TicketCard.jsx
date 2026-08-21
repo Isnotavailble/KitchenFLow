@@ -36,11 +36,11 @@ export default function TicketCard({ ticket }) {
     <div className={`bg-white rounded-2xl border ${isCompleted ? 'border-zinc-200/60' : 'border-zinc-200/80'} shadow-xs p-4 sm:p-5 flex flex-col h-[440px] select-none hover:shadow-sm transition-shadow min-w-[280px]`}>
       {/* 1. Fixed Card Header */}
       <div className="pb-3 border-b border-zinc-100 shrink-0">
-        {/* Top Row: Order label on left, Waiting for timer on right */}
+        {/* Top Row: Order Number label & number on left, Subtle relative time on right */}
         <div className="flex items-start justify-between">
           <div>
             <span className="text-[11px] text-zinc-400 font-medium block">
-              Order
+              Order Number
             </span>
             <span className="text-2xl font-black tracking-tight text-zinc-900 font-sans block mt-0.5">
               {ticket.order_number}
@@ -48,11 +48,8 @@ export default function TicketCard({ ticket }) {
           </div>
 
           {!isCompleted && (
-            <div className="text-right">
-              <span className="text-[11px] text-zinc-400 font-medium block">
-                Waiting for
-              </span>
-              <span className={`font-mono text-xs sm:text-sm font-semibold mt-0.5 block transition-colors duration-300 ${elapsed.colorClass}`}>
+            <div className="text-right pt-0.5">
+              <span className={`text-[11px] font-medium block transition-colors duration-300 ${elapsed.colorClass}`}>
                 {elapsed.formatted}
               </span>
             </div>

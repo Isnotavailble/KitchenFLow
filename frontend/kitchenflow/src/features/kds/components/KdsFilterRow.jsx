@@ -47,7 +47,7 @@ export default function KdsFilterRow() {
 
   return (
     <div className="px-6 pt-5 pb-4 flex flex-wrap items-center justify-between gap-3.5 select-none shrink-0">
-      {/* Left: Status Filter Buttons */}
+      {/* Left: Status Filter Buttons (Stable geometry with permanent 1px border) */}
       <div className="flex items-center space-x-2.5">
         {filters.map((filter) => {
           const isActive = activeFilter === filter
@@ -56,10 +56,10 @@ export default function KdsFilterRow() {
             <button
               key={filter}
               onClick={() => setActiveFilter(filter)}
-              className={`px-5 py-2 rounded-xl text-xs font-bold transition-all duration-200 ease-out shadow-xs cursor-pointer ${
+              className={`px-5 py-2 rounded-xl text-xs font-bold border transition-all duration-150 ease-out shadow-xs cursor-pointer active:scale-[0.96] ${
                 isActive
-                  ? 'bg-[#FF5C39] text-white shadow-sm hover:bg-[#F04D28] hover:shadow-md hover:shadow-orange-500/20 active:scale-[0.95]'
-                  : 'bg-white text-zinc-700 hover:bg-zinc-50 hover:-translate-y-0.5 hover:shadow-sm border border-zinc-200/80 active:translate-y-0 active:scale-[0.95]'
+                  ? 'border-[#FF5C39] bg-[#FF5C39] text-white shadow-sm hover:bg-[#F04D28]'
+                  : 'border-zinc-200/80 bg-white text-zinc-700 hover:bg-zinc-50 hover:border-zinc-300'
               }`}
             >
               {filter}
@@ -100,7 +100,7 @@ export default function KdsFilterRow() {
           {/* Dedicated Search Button */}
           <button
             type="submit"
-            className="px-3.5 py-2 bg-white hover:bg-zinc-50 border border-zinc-200/90 rounded-xl text-xs font-semibold text-zinc-700 shadow-xs transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-sm active:translate-y-0 active:scale-[0.95] cursor-pointer"
+            className="px-3.5 py-2 bg-white hover:bg-zinc-50 border border-zinc-200/90 rounded-xl text-xs font-semibold text-zinc-700 shadow-xs transition-all duration-150 ease-out hover:border-zinc-300 active:scale-[0.96] cursor-pointer"
             title="Execute Search"
           >
             Search

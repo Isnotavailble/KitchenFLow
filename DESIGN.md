@@ -57,12 +57,15 @@ Calculated automatically from backend dish points:
 * **Normal Prep** ($5-9$ pts): `bg-amber-50 text-amber-700 border border-amber-200/80` (e.g. burgers with sides)
 * **Heavy Prep** ($\ge 10$ pts): `bg-red-50 text-red-700 border border-red-200/80` (e.g. multi-pizza combo orders)
 
-### Elapsed Waiting Timers
-Positioned at the top right of active cards beneath the subtitle `Waiting for`:
-* **< 5 Minutes**: `text-emerald-600` (On Track)
-* **5 – 10 Minutes**: `text-amber-600` (Approaching Target)
-* **> 10 Minutes**: `text-red-600 animate-pulse` (Critical Kitchen Delay)
-* **Completed Orders**: Timer is completely removed.
+### Relative Elapsed Time ("ago" Format)
+Positioned at the top right of active cards to provide natural scannability without high-frequency second-by-second re-renders:
+* **< 1 Minute**: `Just now` (`text-emerald-600 font-semibold`)
+* **1 – 4 Minutes**: `N mins ago` (`text-emerald-600 font-semibold`, e.g. `3 mins ago`)
+* **5 – 9 Minutes**: `N mins ago` (`text-amber-600 font-semibold`, e.g. `7 mins ago`)
+* **10+ Minutes**: `N mins ago` (`text-rose-600 font-bold`, e.g. `14 mins ago` — Critical delay)
+* **60+ Minutes**: `1 hour ago` / `N hours ago`
+* **Completed Orders**: Relative time badge is completely removed.
+* **Interval**: Throttled to a lightweight 30-second interval, reducing render cycles by >96%.
 
 ---
 

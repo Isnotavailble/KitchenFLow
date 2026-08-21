@@ -1,51 +1,63 @@
 /**
- * Calculates live elapsed duration from a created_at timestamp string or Date object.
- * Returns formatted time e.g. "12:45 min", total minutes, and threshold level.
- * 
- * Thresholds (Option 3):
- * - Fresh: < 5 mins
- * - Moderate: 5 - 9.99 mins
- * - Urgent / Priority: >= 10 mins
+ * Formats a timestamp into human-readable relative time (minutes/hours ago).
+ * Eliminates second-level intervals to maximize performance and prevent UI thrashing.
+ *
+ * Examples:
+ * - < 1 min: "Just now"
+ * - 1 min: "1 min ago"
+ * - 2 - 59 mins: "N mins ago"
+ * - 1 hour: "1 hour ago"
+ * - 2+ hours: "N hours ago"
+ *
+ * Thresholds:
+ * - Fresh (< 5 mins): text-emerald-600
+ * - Moderate (5 - 9 mins): text-amber-600
+ * - Urgent (>= 10 mins): text-rose-600
  */
 export function getElapsedTime(createdAt) {
   if (!createdAt) {
     return {
-      formatted: '00:00 min',
+      formatted: 'Just now',
       mins: 0,
-      secs: 0,
       threshold: 'fresh',
       isPriority: false,
-      colorClass: 'text-zinc-500'
+      colorClass: 'text-emerald-600'
     }
   }
 
   const createdTime = new Date(createdAt).getTime()
   const now = Date.now()
   const diffMs = Math.max(0, now - createdTime)
-  const totalSeconds = Math.floor(diffMs / 1000)
-  const mins = Math.floor(totalSeconds / 60)
-  const secs = totalSeconds % 60
+  const mins = Math.floor(diffMs / 60000)
 
-  const formatted = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')} min`
+  let formatted = 'Just now'
+  if (mins >= 120) {
+    const hours = Math.floor(mins / 60)
+    formatted = `${hours} hours ago`
+  } else if (mins >= 60) {
+    formatted = '1 hour ago'
+  } else if (mins === 1) {
+    formatted = '1 min ago'
+  } else if (mins > 1) {
+    formatted = `${mins} mins ago`
+  }
 
   let threshold = 'fresh'
-  let colorClass = 'text-zinc-500'
+  let colorClass = 'text-emerald-600'
   let isPriority = false
 
   if (mins >= 10) {
     threshold = 'urgent'
-    colorClass = 'text-rose-600 font-bold'
+    colorClass = 'text-rose-600'
     isPriority = true
   } else if (mins >= 5) {
     threshold = 'moderate'
-    colorClass = 'text-amber-600 font-medium'
+    colorClass = 'text-amber-600'
   }
 
   return {
     formatted,
-    totalSeconds,
     mins,
-    secs,
     threshold,
     isPriority,
     colorClass
