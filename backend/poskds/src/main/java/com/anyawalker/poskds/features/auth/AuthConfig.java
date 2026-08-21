@@ -7,6 +7,7 @@ import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -52,6 +53,9 @@ public class AuthConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers("/api/auth/**", "/swagger", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/scalar")
+                        .permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/api/pre-orders")
                         .permitAll()
 
                         .requestMatchers("/api/orders/**")

@@ -50,7 +50,7 @@ public class OrderController {
             return ResponseEntity.ok(orderResponse);
 
         } catch (OrderFailureException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("status",e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
     // deprecated due to immutable order entity
@@ -64,7 +64,7 @@ public class OrderController {
 //            return ResponseEntity.ok(orderService.updateOrderItems(orderId,orderRequest.get("orderItems"),userId));
 //        }
 //        catch (OrderFailureException e){
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("status",e.getMessage()));
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
 //        }
 //    }
 
@@ -79,10 +79,10 @@ public class OrderController {
             return ResponseEntity.ok(orderResponse);
         }
         catch (InValidOrderStatusException | OrderFailureException e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("status",e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
         catch (AlreadyUpdatedException e){
-            return ResponseEntity.ok(Map.of("status", e.getMessage()));
+            return ResponseEntity.ok(Map.of("error", e.getMessage()));
         }
 
     }

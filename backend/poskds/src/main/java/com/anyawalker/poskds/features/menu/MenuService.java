@@ -76,6 +76,18 @@ public class MenuService {
         return MenuDto.Response.fromEntity(saved);
     }
 
+    public MenuDto.Response toggleMenuItem(Integer id,Boolean toggle){
+
+        if (id == null || toggle == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"menu Id and toggle value is required");
+
+        MenuEntity menuEntity = menuRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Menu not found with id: " + id));
+
+        menuEntity.setAvailable(toggle);
+        return MenuDto.Response.fromEntity(menuRepo.save(menuEntity));
+    }
+
     public void deleteMenu(Integer id) {
         MenuEntity entity = menuRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Menu not found with id: " + id));
@@ -96,15 +108,4 @@ public class MenuService {
         }
     }
 
-    public List<MenuEntity> getMenuEntityListByIds(List<Integer> menuIdList){
-        return menuRepo.findAllById(menuIdList);
-    }
-    public Map<Integer,MenuEntity> getMenuEntityMapByIds(List<Integer> menuIdList){
-        //get all menu by list of ids
-        List<MenuEntity> menuEntityList = getMenuEntityListByIds(menuIdList);
-
-        //create Map for lookup ( faster than list )
-        return menuEntityList.stream()
-                .collect(Collectors.toMap(MenuEntity::getId, menuEntity -> menuEntity));
-    }
 }

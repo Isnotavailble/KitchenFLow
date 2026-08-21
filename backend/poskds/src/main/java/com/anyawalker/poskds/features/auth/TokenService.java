@@ -67,7 +67,13 @@ public class TokenService {
                 .orElseThrow(() -> new InvalidRefreshTokenException("Invalid refresh token."));
 
         // hibernate will call the select * from users where id = :id
-        Long userId = tokenEntity.getUserEntity().getId();
+        UserEntity userEntity = tokenEntity.getUserEntity();
+        Long userId = userEntity.getId();
+
+        if (userEntity.isDeleted()) {
+            tokenRepo.deleteByUserId(userId);
+            throw new InvalidRefreshTokenException("User account is deactivated. Please contact admin.");
+        }
 
         //token reused detection
         //if detected,destroy all the token by userId

@@ -74,6 +74,18 @@ A lightweight, high-performance real-time synchronization engine with low level 
 
 
 
+## 📱 5. In-Store QR Pre-Order & Queue Optimization Module
+*Status: Active / Implemented*
+
+A high-throughput, guest pre-ordering system designed to eliminate counter bottlenecks and peak-hour queue friction. Customers in line pre-select items on their mobile browsers, generate a QR code, and cashiers instantly load the ticket by scanning at the counter.
+
+*   **Guest Customer Mobile Pre-Order:** Public endpoint (`POST /api/pre-orders`) allowing customers to assemble carts without requiring account login or authentication.
+*   **Server-Side QR Code Generation:** Backend dynamically renders a 300x300 PNG QR code via Google ZXing and returns a standard Base64 Data URI (`data:image/png;base64,...`) for instant rendering on customer mobile screens.
+*   **Lightweight Redis In-Memory Drafts:** Temporary carts are stored as pure, standard JSON under `pre_order:<6-digit-code>` with a strict **30-minute expiration timer (`TTL`)** to minimize database overhead.
+*   **Cashier Counter Scan & Real-Time DB Lookup:** Cashier scans the QR (`GET /api/pre-orders/{code}`) with a handheld barcode scanner or POS camera. The server pulls item IDs from Redis and runs a fast primary key lookup in PostgreSQL (`menuRepo.findAllById(...)`) to guarantee real-time prices and stock availability (`isAvailable`).
+*   **Automatic Token Invalidation:** When the cashier completes checkout and creates the official order ticket (`POST /api/orders/create_order`), the temporary Redis draft is evicted (`DELETE /api/pre-orders/{code}`) to prevent duplicate scans.
+
+
 ## 👥 6. Account Module (Owner)
 *Status: Planned / In Backlog*
 
