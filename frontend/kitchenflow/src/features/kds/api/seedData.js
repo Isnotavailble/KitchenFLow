@@ -23,44 +23,38 @@ export const MENU_ITEMS_LIST = [
 const SAMPLE_TEMPLATES = [
   {
     items: [
-      { name: 'Spicy Zinger Burger', qty: 1, desc: 'Crunchy chicken patty, lettuce, zesty mayo', image: FOOD_IMAGES.burger },
-      { name: 'Classic Veggie Wrap', qty: 1, desc: 'Fresh veggies, creamy sauce, Extra Pickles (#4229)', image: null },
+      { name: 'Spicy Zinger Burger', qty: 1, desc: 'Crunchy chicken patty, lettuce, zesty mayo', image: FOOD_IMAGES.burger, itemCustomization: 'Extra zesty mayo' },
+      { name: 'Classic Veggie Wrap', qty: 1, desc: 'Fresh veggies, creamy sauce', image: null, itemCustomization: 'No onions' },
       { name: 'Vegan Chicken Wrap', qty: 2, desc: 'Mixed greens, sely croutons, dairy free wild dressing', image: FOOD_IMAGES.salad },
-      { name: 'Mediterranzer Pizza', qty: 1, desc: 'Extra Cheese (9519)', image: FOOD_IMAGES.pizza },
-      { name: 'Vegan Caesar Chicken', qty: 1, desc: 'Grilled greens with olive and feta', image: FOOD_IMAGES.chicken }
+      { name: 'Mediterranzer Pizza', qty: 1, desc: 'Extra Cheese', image: FOOD_IMAGES.pizza }
     ],
     workloadTier: 'heavy'
   },
   {
     items: [
-      { name: 'Mushroom Swiss Burger', qty: 1, desc: 'Savory beef patty, grilled mushrooms, Extra Pickles', image: FOOD_IMAGES.burger },
-      { name: 'Vegan Caesar Salad', qty: 1, desc: 'Mixed greens, dairy-free pickles (#459)', image: FOOD_IMAGES.salad },
-      { name: 'Spicy Chicken Wrap', qty: 1, desc: 'Crunchy spicy chicken, lettuce, Add Jalapeños', image: null },
-      { name: 'Classic Margherita Pizza', qty: 2, desc: 'Wood fired crust, mozzarella, fresh basil', image: FOOD_IMAGES.pizza }
+      { name: 'Mushroom Swiss Burger', qty: 1, desc: 'Savory beef patty, grilled mushrooms', image: FOOD_IMAGES.burger, itemCustomization: 'Well done' },
+      { name: 'Vegan Caesar Salad', qty: 1, desc: 'Mixed greens, dairy-free dressing', image: FOOD_IMAGES.salad }
+    ],
+    workloadTier: 'medium'
+  },
+  {
+    items: [
+      { name: 'Mediterranzer Pizza', qty: 2, desc: 'Wood-fired crust, kalamata olives', image: FOOD_IMAGES.pizza }
     ],
     workloadTier: 'heavy'
   },
   {
     items: [
-      { name: 'Mediterranzer Pizza', qty: 2, desc: 'Extra Cheese (9519)', image: FOOD_IMAGES.pizza },
-      { name: 'Vegan Caesar Chicken', qty: 1, desc: 'Grilled greens with olive and feta', image: FOOD_IMAGES.chicken }
-    ],
-    workloadTier: 'heavy'
-  },
-  {
-    items: [
-      { name: 'Classic Veggie Wrap', qty: 1, desc: 'Fresh veggies, creamy sauce, Extra Pickles (#4429)', image: FOOD_IMAGES.wrap }
+      { name: 'Classic Veggie Wrap', qty: 1, desc: 'Fresh veggies, hummus', image: FOOD_IMAGES.wrap, itemCustomization: 'Sauce on side' }
     ],
     workloadTier: 'light'
   },
   {
     items: [
-      { name: 'Classic Margherita Pizza', qty: 1, desc: 'Wood fired crust, mozzarella, fresh basil', image: FOOD_IMAGES.pizza },
-      { name: 'Spicy Chicken Wrap', qty: 2, desc: 'Crunchy spicy chicken, lettuce, Add Jalapeños', image: null },
-      { name: 'Spicy Zinger Burger', qty: 1, desc: 'Double crunchy chicken patty, extra zesty mayo', image: FOOD_IMAGES.burger },
-      { name: 'Vegan Caesar Salad', qty: 1, desc: 'Mixed greens, vegan croutons, No Croutons', image: FOOD_IMAGES.salad }
+      { name: 'Classic Margherita Pizza', qty: 1, desc: 'Wood fired crust, mozzarella', image: FOOD_IMAGES.pizza },
+      { name: 'Spicy Zinger Burger', qty: 1, desc: 'Double crunchy chicken patty', image: FOOD_IMAGES.burger }
     ],
-    workloadTier: 'heavy'
+    workloadTier: 'medium'
   },
   {
     items: [
@@ -71,19 +65,26 @@ const SAMPLE_TEMPLATES = [
   }
 ]
 
-// Generate 32 seed orders for seamless page size 20 pagination demonstration
+// Generate seed orders including 3 completed orders ready for pickup
 export const INITIAL_ORDERS = Array.from({ length: 32 }, (_, i) => {
   const orderNum = 5266 + i
   const template = SAMPLE_TEMPLATES[i % SAMPLE_TEMPLATES.length]
   const elapsedMinutes = Math.max(1, 16 - Math.floor(i * 0.5))
   const elapsedSeconds = (i * 17) % 60
+  const orderType = i % 2 === 0 ? 'takeaway' : 'dine_in'
+
+  // Pre-seed 3 recently completed orders for pickup demo (orders at index 29, 30, 31)
+  const isCompleted = i >= 29
+  const completedMinutesAgo = i === 29 ? 5 : i === 30 ? 3 : 1
 
   return {
     id: `ord-${orderNum}`,
     order_number: `#${orderNum}`,
     orderNumberInt: orderNum,
+    orderType,
     created_at: new Date(Date.now() - (elapsedMinutes * 60 + elapsedSeconds) * 1000).toISOString(),
-    status: 'Waiting',
+    completed_at: isCompleted ? new Date(Date.now() - completedMinutesAgo * 60 * 1000).toISOString() : null,
+    status: isCompleted ? 'Completed' : 'Waiting',
     workloadTier: template.workloadTier,
     items: template.items
   }
@@ -99,6 +100,7 @@ export function generateSimulatedOrder() {
     id: `ord-${counter}`,
     order_number: `#${counter}`,
     orderNumberInt: counter,
+    orderType: Math.random() > 0.5 ? 'takeaway' : 'dine_in',
     created_at: new Date().toISOString(),
     status: 'Waiting',
     workloadTier: template.workloadTier,

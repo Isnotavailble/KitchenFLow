@@ -30,9 +30,9 @@ export default function CategoryTabs() {
   }
 
   return (
-    <div className="px-6 pt-5 pb-3 flex flex-wrap items-center justify-between gap-3.5 select-none shrink-0">
-      {/* Category Pills */}
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="px-6 pt-5 pb-3 flex items-center justify-between gap-3 select-none shrink-0 min-w-0">
+      {/* Horizontal Scrollable Category Track (No Chevrons, Pure Smooth Scroll) */}
+      <div className="flex-1 min-w-0 flex items-center space-x-2 overflow-x-auto no-scrollbar scroll-smooth py-1">
         {categories.map((cat) => {
           const isActive = selectedCategory === cat
 
@@ -40,7 +40,7 @@ export default function CategoryTabs() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all duration-150 ease-out shadow-xs cursor-pointer active:scale-[0.96] ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all duration-150 ease-out shadow-xs cursor-pointer active:scale-[0.96] shrink-0 whitespace-nowrap ${
                 isActive
                   ? 'border-[#FF5C39] bg-[#FF5C39] text-white shadow-sm hover:bg-[#F04D28]'
                   : 'border-zinc-200/80 bg-white text-zinc-700 hover:bg-zinc-50 hover:border-zinc-300'
@@ -52,8 +52,8 @@ export default function CategoryTabs() {
         })}
       </div>
 
-      {/* Menu Dish Search Form (Enter key & Search Button triggered) */}
-      <form onSubmit={handleSearchSubmit} className="flex items-center space-x-1.5">
+      {/* Pinned Menu Dish Search Form */}
+      <form onSubmit={handleSearchSubmit} className="flex items-center space-x-1.5 shrink-0">
         <div className="relative flex items-center">
           <div className="absolute left-3.5 pointer-events-none text-zinc-400">
             <Search className="w-3.5 h-3.5" />

@@ -4,7 +4,11 @@ export const POS_CATEGORIES = [
   'Wraps',
   'Pizzas',
   'Salads',
-  'Beverages'
+  'Beverages',
+  'Sides',
+  'Desserts',
+  'Hot Drinks',
+  'Combos'
 ]
 
 export const POS_MENU_ITEMS = [
@@ -50,7 +54,7 @@ export const POS_MENU_ITEMS = [
     prepPoints: 4,
     desc: 'Grilled spicy chicken strips, jalapeños, melted cheddar, chipotle crema.',
     image: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400&auto=format&fit=crop&q=80',
-    isAvailable: true
+    isAvailable: false // Unavailable item 1
   },
   {
     id: 'menu-5',
@@ -72,7 +76,7 @@ export const POS_MENU_ITEMS = [
     prepPoints: 10,
     desc: 'San Marzano tomato base, fresh buffalo mozzarella, and fragrant basil.',
     image: 'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=400&auto=format&fit=crop&q=80',
-    isAvailable: true
+    isAvailable: false // Unavailable item 2
   },
   {
     id: 'menu-7',
