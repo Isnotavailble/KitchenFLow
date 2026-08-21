@@ -27,61 +27,125 @@ public class PreUpdateMenuTable {
         log.info("Start Post construct on menu table");
 
         if (menuRepo.count() == 0) {
-            log.info("Seeding 5 Myanglish menu items...");
+            log.info("Seeding 10 casual menu items...");
 
-            CategoryEntity noodles = categoryRepo.findByName("Noodles");
-            CategoryEntity salad = categoryRepo.findByName("Salad");
-            CategoryEntity snack = categoryRepo.findByName("Snack");
+            CategoryEntity burgers = categoryRepo.findByName("Burgers");
+            CategoryEntity wraps = categoryRepo.findByName("Wraps");
+            CategoryEntity pizzas = categoryRepo.findByName("Pizzas");
+            CategoryEntity salads = categoryRepo.findByName("Salads");
+            CategoryEntity beverages = categoryRepo.findByName("Beverages");
 
-            MenuEntity shanKhaukSwew = new MenuEntity();
-            shanKhaukSwew.setName("Shan Khauk Swew");
-            shanKhaukSwew.setCategoryEntity(noodles);
-            shanKhaukSwew.setPrice(3000);
-            shanKhaukSwew.setAvailable(true);
-            shanKhaukSwew.setWorkloadTier(2); // medium
-            menuRepo.save(shanKhaukSwew);
+            // 1. Spicy Zinger Burger
+            MenuEntity zinger = new MenuEntity();
+            zinger.setName("Spicy Zinger Burger");
+            zinger.setCategoryEntity(burgers);
+            zinger.setPrice(850);
+            zinger.setAvailable(true);
+            zinger.setWorkloadTier(2); // medium (4 pts)
+            zinger.setImageUrl("https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80");
+            zinger.setImageId("poskds/seed_zinger_burger");
+            menuRepo.save(zinger);
 
-            MenuEntity moteHinGar = new MenuEntity();
-            moteHinGar.setName("Mote Hin Gar");
-            moteHinGar.setCategoryEntity(noodles);
-            moteHinGar.setPrice(2500);
-            moteHinGar.setAvailable(true);
-            moteHinGar.setWorkloadTier(1); // fast
-            menuRepo.save(moteHinGar);
+            // 2. Mushroom Swiss Burger
+            MenuEntity swiss = new MenuEntity();
+            swiss.setName("Mushroom Swiss Burger");
+            swiss.setCategoryEntity(burgers);
+            swiss.setPrice(950);
+            swiss.setAvailable(true);
+            swiss.setWorkloadTier(2); // medium (4 pts)
+            swiss.setImageUrl("https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=600&auto=format&fit=crop&q=80");
+            swiss.setImageId("poskds/seed_mushroom_swiss");
+            menuRepo.save(swiss);
 
-            MenuEntity lahpetThoke = new MenuEntity();
-            lahpetThoke.setName("Lahpet Thoke");
-            lahpetThoke.setCategoryEntity(salad);
-            lahpetThoke.setPrice(2000);
-            lahpetThoke.setAvailable(true);
-            lahpetThoke.setWorkloadTier(1); // fast
-            menuRepo.save(lahpetThoke);
+            // 3. Classic Veggie Wrap
+            MenuEntity veggieWrap = new MenuEntity();
+            veggieWrap.setName("Classic Veggie Wrap");
+            veggieWrap.setCategoryEntity(wraps);
+            veggieWrap.setPrice(675);
+            veggieWrap.setAvailable(true);
+            veggieWrap.setWorkloadTier(1); // light (1 pt)
+            veggieWrap.setImageUrl("https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=600&auto=format&fit=crop&q=80");
+            veggieWrap.setImageId("poskds/seed_veggie_wrap");
+            menuRepo.save(veggieWrap);
 
-            MenuEntity tofuKyaw = new MenuEntity();
-            tofuKyaw.setName("Tofu Kyaw");
-            tofuKyaw.setCategoryEntity(snack);
-            tofuKyaw.setPrice(1500);
-            tofuKyaw.setAvailable(true);
-            tofuKyaw.setWorkloadTier(2); // medium
-            menuRepo.save(tofuKyaw);
+            // 4. Spicy Chicken Wrap (Unavailable for testing out-of-stock)
+            MenuEntity spicyWrap = new MenuEntity();
+            spicyWrap.setName("Spicy Chicken Wrap");
+            spicyWrap.setCategoryEntity(wraps);
+            spicyWrap.setPrice(795);
+            spicyWrap.setAvailable(false);
+            spicyWrap.setWorkloadTier(2); // medium (4 pts)
+            spicyWrap.setImageUrl("https://images.unsplash.com/photo-1529042410759-befb1204b468?w=600&auto=format&fit=crop&q=80");
+            spicyWrap.setImageId("poskds/seed_spicy_wrap");
+            menuRepo.save(spicyWrap);
 
-            MenuEntity ohnNoKhaukSwew = new MenuEntity();
-            ohnNoKhaukSwew.setName("Ohn No Khauk Swew");
-            ohnNoKhaukSwew.setCategoryEntity(noodles);
-            ohnNoKhaukSwew.setPrice(3500);
-            ohnNoKhaukSwew.setAvailable(true);
-            ohnNoKhaukSwew.setWorkloadTier(2); // medium
-            menuRepo.save(ohnNoKhaukSwew);
+            // 5. Mediterranzer Pizza
+            MenuEntity medPizza = new MenuEntity();
+            medPizza.setName("Mediterranzer Pizza");
+            medPizza.setCategoryEntity(pizzas);
+            medPizza.setPrice(1450);
+            medPizza.setAvailable(true);
+            medPizza.setWorkloadTier(3); // heavy (10 pts)
+            medPizza.setImageUrl("https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=600&auto=format&fit=crop&q=80");
+            medPizza.setImageId("poskds/seed_med_pizza");
+            menuRepo.save(medPizza);
 
-            MenuEntity Meeshay = new MenuEntity();
-            Meeshay.setName("Mee Shay");
-            Meeshay.setCategoryEntity(noodles);
-            Meeshay.setPrice(7800);
-            Meeshay.setAvailable(true);
-            Meeshay.setWorkloadTier(3); // heavy
-            menuRepo.save(Meeshay);
+            // 6. Classic Margherita Pizza (Unavailable for testing)
+            MenuEntity margherita = new MenuEntity();
+            margherita.setName("Classic Margherita Pizza");
+            margherita.setCategoryEntity(pizzas);
+            margherita.setPrice(1200);
+            margherita.setAvailable(false);
+            margherita.setWorkloadTier(3); // heavy (10 pts)
+            margherita.setImageUrl("https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=600&auto=format&fit=crop&q=80");
+            margherita.setImageId("poskds/seed_margherita");
+            menuRepo.save(margherita);
 
-            log.info("Menu table seeded successfully.");
+            // 7. Vegan Caesar Salad
+            MenuEntity caesar = new MenuEntity();
+            caesar.setName("Vegan Caesar Salad");
+            caesar.setCategoryEntity(salads);
+            caesar.setPrice(750);
+            caesar.setAvailable(true);
+            caesar.setWorkloadTier(1); // light (1 pt)
+            caesar.setImageUrl("https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&auto=format&fit=crop&q=80");
+            caesar.setImageId("poskds/seed_vegan_caesar");
+            menuRepo.save(caesar);
+
+            // 8. Crispy Tofu Power Bowl
+            MenuEntity tofuBowl = new MenuEntity();
+            tofuBowl.setName("Crispy Tofu Power Bowl");
+            tofuBowl.setCategoryEntity(salads);
+            tofuBowl.setPrice(900);
+            tofuBowl.setAvailable(true);
+            tofuBowl.setWorkloadTier(2); // medium (4 pts)
+            tofuBowl.setImageUrl("https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop&q=80");
+            tofuBowl.setImageId("poskds/seed_tofu_bowl");
+            menuRepo.save(tofuBowl);
+
+            // 9. Iced Citrus Lemonade
+            MenuEntity lemonade = new MenuEntity();
+            lemonade.setName("Iced Citrus Lemonade");
+            lemonade.setCategoryEntity(beverages);
+            lemonade.setPrice(350);
+            lemonade.setAvailable(true);
+            lemonade.setWorkloadTier(1); // light (1 pt)
+            lemonade.setImageUrl("https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&auto=format&fit=crop&q=80");
+            lemonade.setImageId("poskds/seed_citrus_lemonade");
+            menuRepo.save(lemonade);
+
+            // 10. Cold Brew Craft Coffee
+            MenuEntity coldBrew = new MenuEntity();
+            coldBrew.setName("Cold Brew Craft Coffee");
+            coldBrew.setCategoryEntity(beverages);
+            coldBrew.setPrice(425);
+            coldBrew.setAvailable(true);
+            coldBrew.setWorkloadTier(1); // light (1 pt)
+            coldBrew.setImageUrl("https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&auto=format&fit=crop&q=80");
+            coldBrew.setImageId("poskds/seed_cold_brew");
+            menuRepo.save(coldBrew);
+
+            log.info("Menu table seeded successfully with 10 casual menu items.");
         }
     }
 }

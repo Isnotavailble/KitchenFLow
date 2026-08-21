@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component("preUpdateCategoryTable")
 @DependsOn("preUpdateUserTable")
 public class PreUpdateCategoryTable {
@@ -22,22 +24,14 @@ public class PreUpdateCategoryTable {
     public void doInit() {
         log.info("Start Post construct on category table");
 
-        if (categoryRepo.count() == 0) {
-            log.info("Seeding categories...");
-
-            CategoryEntity noodles = new CategoryEntity();
-            noodles.setName("Noodles");
-            categoryRepo.save(noodles);
-
-            CategoryEntity salad = new CategoryEntity();
-            salad.setName("Salad");
-            categoryRepo.save(salad);
-
-            CategoryEntity snack = new CategoryEntity();
-            snack.setName("Snack");
-            categoryRepo.save(snack);
-
-            log.info("Category table seeded successfully.");
+        List<String> categories = List.of("Burgers", "Wraps", "Pizzas", "Salads", "Beverages");
+        for (String catName : categories) {
+            if (categoryRepo.findByName(catName) == null) {
+                CategoryEntity cat = new CategoryEntity();
+                cat.setName(catName);
+                categoryRepo.save(cat);
+            }
         }
+        log.info("Category table seeded successfully with 5 categories.");
     }
 }
