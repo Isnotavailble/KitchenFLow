@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { Plus, ImageOff, ShoppingBag, Utensils } from 'lucide-react'
+import { Plus, ImageOff, ShoppingBag, Utensils, X, Loader2 } from 'lucide-react'
 import { useKds } from '../hooks/useKds'
+import { useAuth } from '../../auth/hooks/useAuth'
 import { useElapsedTime } from '../hooks/useElapsedTime'
 import Badge from '../../../components/Badge'
 import WorkloadBadge from './WorkloadBadge'
@@ -28,13 +29,17 @@ function ItemThumbnail({ image, name }) {
 }
 
 export default function TicketCard({ ticket }) {
-  const { markComplete } = useKds()
+  const { markComplete, cancelOrder, processingOrderIds } = useKds()
+  const { user } = useAuth()
   const elapsed = useElapsedTime(ticket.created_at)
   const isCompleted = ticket.status === 'Completed'
+  const isCancelled = ticket.status === 'Cancelled'
   const isTakeaway = ticket.orderType === 'takeaway'
+  const isAdmin = user?.role === 'ROLE_ADMIN'
+  const isProcessing = processingOrderIds?.has(ticket.id) || processingOrderIds?.has(ticket.rawId) || processingOrderIds?.has(ticket.orderNumberInt)
 
   return (
-    <div className={`bg-white rounded-2xl border ${isCompleted ? 'border-zinc-200/60' : 'border-zinc-200/80'} shadow-xs p-4 sm:p-5 flex flex-col h-[440px] select-none hover:shadow-sm transition-shadow min-w-[280px]`}>
+    <div className={`bg-white rounded-2xl border ${isCancelled ? 'border-rose-200 bg-rose-50/10' : isCompleted ? 'border-zinc-200/60' : 'border-zinc-200/80'} shadow-xs p-4 sm:p-5 flex flex-col h-[440px] select-none hover:shadow-sm transition-shadow min-w-[280px]`}>
       {/* 1. Fixed Card Header */}
       <div className="pb-3 border-b border-zinc-100 shrink-0">
         {/* Top Row: Order Number label & number on left, Subtle relative time on right */}
@@ -48,59 +53,67 @@ export default function TicketCard({ ticket }) {
             </span>
           </div>
 
-          {!isCompleted && (
-            <div className="text-right pt-0.5">
-              <span className={`text-[11px] font-medium block transition-colors duration-300 ${elapsed.colorClass}`}>
-                {elapsed.formatted}
-              </span>
-            </div>
-          )}
+          <div className="flex flex-col items-end space-y-1">
+            <span className="text-xs font-semibold text-zinc-400">
+              {elapsed}
+            </span>
+            <WorkloadBadge tier={ticket.workloadTier} />
+          </div>
         </div>
 
-        {/* Badges Row: Status, Order Type (Dine-In/Takeaway), and Workload */}
-        <div className="flex flex-wrap items-center gap-1.5 mt-2">
-          <Badge status={ticket.status} className="text-xs px-2 py-0.5" />
-          {ticket.orderType && (
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-zinc-100 text-zinc-700 border border-zinc-200 flex items-center space-x-1">
-              {isTakeaway ? (
-                <>
-                  <ShoppingBag className="w-3 h-3 text-zinc-500" />
-                  <span>Takeaway</span>
-                </>
-              ) : (
-                <>
-                  <Utensils className="w-3 h-3 text-zinc-500" />
-                  <span>Dine-In</span>
-                </>
-              )}
+        {/* Bottom Row: Badges aligned cleanly */}
+        <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-zinc-100/80">
+          <Badge
+            variant={isTakeaway ? 'info' : 'brand'}
+            size="sm"
+            icon={isTakeaway ? ShoppingBag : Utensils}
+          >
+            {isTakeaway ? 'Takeaway' : 'Dine In'}
+          </Badge>
+
+          {isCancelled ? (
+            <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 text-[11px] font-bold">
+              Cancelled
             </span>
-          )}
-          {ticket.workloadTier && (
-            <WorkloadBadge tier={ticket.workloadTier} />
+          ) : isCompleted ? (
+            <span className="px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-600 text-[11px] font-bold">
+              Ready
+            </span>
+          ) : (
+            <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[11px] font-bold border border-amber-200/50">
+              In Kitchen
+            </span>
           )}
         </div>
       </div>
 
-      {/* 2. Scrollable Order Items List */}
-      <div className="flex-1 min-h-0 py-3.5 pr-1.5 space-y-3.5 overflow-y-auto">
+      {/* 2. Scrollable Items Area */}
+      <div className="flex-1 overflow-y-auto py-3 space-y-3 min-h-0 pr-1">
         {ticket.items.map((item, idx) => (
-          <div key={idx} className="flex items-start space-x-3 text-xs">
-            {/* Thumbnail Image or Empty State Icon Placeholder */}
+          <div
+            key={idx}
+            className="flex items-start space-x-3 p-2 rounded-xl hover:bg-zinc-50/70 transition-colors"
+          >
+            {/* Food Thumbnail Photo with Fallback */}
             <ItemThumbnail image={item.image} name={item.name} />
 
-            {/* Title, Description & Customization Note */}
-            <div className="flex-1 min-w-0 pr-1">
-              <span className="font-bold text-zinc-900 text-xs sm:text-sm leading-snug block">
-                {item.qty}x {item.name}
-              </span>
-              {item.desc && (
-                <p className="text-[11px] sm:text-xs text-zinc-500 leading-tight mt-0.5 font-normal">
-                  {item.desc}
-                </p>
-              )}
+            {/* Item Details */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-baseline space-x-2">
+                <span className="text-sm font-black text-[#FF5C39] font-sans">
+                  {item.qty}×
+                </span>
+                <span className="text-sm font-bold text-zinc-800 truncate">
+                  {item.name}
+                </span>
+              </div>
+
+              {/* Customization Notes */}
               {item.itemCustomization && (
-                <div className="mt-1 inline-block bg-orange-50 border border-orange-200/80 text-amber-900 px-2 py-0.5 rounded text-[11px] font-medium">
-                  <span className="font-bold text-[#FF5C39]">Note:</span> {item.itemCustomization}
+                <div className="mt-1">
+                  <span className="inline-block px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-semibold border border-amber-200/60 leading-tight">
+                    Note: {item.itemCustomization}
+                  </span>
                 </div>
               )}
             </div>
@@ -108,21 +121,67 @@ export default function TicketCard({ ticket }) {
         ))}
       </div>
 
-      {/* 3. Fixed Card Footer */}
-      <div className="pt-2 shrink-0">
-        {!isCompleted ? (
-          <button
-            type="button"
-            onClick={() => markComplete(ticket.id)}
-            className="group w-full py-3 bg-[#FF5C39] hover:bg-[#F04D28] text-white font-bold text-sm rounded-xl shadow-xs transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md hover:shadow-orange-500/25 active:translate-y-0 active:scale-[0.95] flex items-center justify-center space-x-1.5 cursor-pointer"
-          >
-            <span>Mark Complete</span>
-            <Plus className="w-4 h-4 transition-transform duration-200 ease-out group-hover:rotate-90 group-hover:scale-110" />
-          </button>
-        ) : (
+      {/* 3. Bottom Action Footer */}
+      <div className="pt-3 border-t border-zinc-100 shrink-0">
+        {isCancelled ? (
+          <div className="py-2.5 text-center text-xs font-semibold text-rose-500 bg-rose-50 rounded-xl border border-rose-100">
+            Order Cancelled
+          </div>
+        ) : isCompleted ? (
           <div className="py-2.5 text-center text-xs font-semibold text-zinc-400 bg-zinc-50 rounded-xl border border-zinc-100">
             Completed Order
           </div>
+        ) : isAdmin ? (
+          /* Owner: Both Cancel and Mark Complete Actions */
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              disabled={isProcessing}
+              onClick={() => {
+                if (window.confirm(`Are you sure you want to cancel order ${ticket.order_number}?`)) {
+                  cancelOrder(ticket.rawId || ticket.orderNumberInt || ticket.id)
+                }
+              }}
+              className="flex-1 py-2.5 bg-white hover:bg-rose-50 border border-rose-200 text-rose-600 font-bold text-xs rounded-xl shadow-xs transition-all active:scale-[0.96] flex items-center justify-center space-x-1 cursor-pointer disabled:opacity-50"
+              title="Cancel this order (Owner authority)"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Cancel</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={isProcessing}
+              onClick={() => markComplete(ticket.rawId || ticket.orderNumberInt || ticket.id)}
+              className="flex-[1.4] py-2.5 bg-[#FF5C39] hover:bg-[#F04D28] text-white font-bold text-xs rounded-xl shadow-xs transition-all active:scale-[0.96] flex items-center justify-center space-x-1 cursor-pointer disabled:opacity-50"
+            >
+              {isProcessing ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <>
+                  <span>Complete</span>
+                  <Plus className="w-3.5 h-3.5" />
+                </>
+              )}
+            </button>
+          </div>
+        ) : (
+          /* Chef: Single-Touch Complete */
+          <button
+            type="button"
+            disabled={isProcessing}
+            onClick={() => markComplete(ticket.rawId || ticket.orderNumberInt || ticket.id)}
+            className="group w-full py-3 bg-[#FF5C39] hover:bg-[#F04D28] text-white font-bold text-sm rounded-xl shadow-xs transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md hover:shadow-orange-500/25 active:translate-y-0 active:scale-[0.95] flex items-center justify-center space-x-1.5 cursor-pointer disabled:opacity-50"
+          >
+            {isProcessing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <span>Mark Complete</span>
+                <Plus className="w-4 h-4 transition-transform duration-200 ease-out group-hover:rotate-90 group-hover:scale-110" />
+              </>
+            )}
+          </button>
         )}
       </div>
     </div>

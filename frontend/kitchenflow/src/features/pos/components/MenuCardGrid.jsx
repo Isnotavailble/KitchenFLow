@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Plus, ImageOff } from 'lucide-react'
+import { Plus, ImageOff, Loader2, UtensilsCrossed } from 'lucide-react'
 import { usePos } from '../hooks/usePos'
 import WorkloadBadge from '../../kds/components/WorkloadBadge'
 
@@ -17,11 +17,11 @@ function MenuImageThumbnail({ item }) {
           No Photo Available
         </span>
 
-        {/* Not Available Label Overlay (Light Frosted Theme) */}
+        {/* Unavailable Label Overlay (Light Frosted Theme) */}
         {isUnavailable && (
           <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
             <span className="px-3 py-1 bg-white text-zinc-800 font-bold text-[11px] rounded-xl shadow-xs border border-zinc-200/90 tracking-wide">
-              Not Available
+              Unavailable
             </span>
           </div>
         )}
@@ -45,11 +45,11 @@ function MenuImageThumbnail({ item }) {
         onError={() => setHasError(true)}
       />
 
-      {/* Blurred Not Available Label Overlay (Light Frosted Theme) */}
+      {/* Blurred Unavailable Label Overlay (Light Frosted Theme) */}
       {isUnavailable && (
         <div className="absolute inset-0 bg-white/50 backdrop-blur-[1.5px] flex items-center justify-center">
           <span className="px-3 py-1 bg-white text-zinc-800 font-bold text-[11px] rounded-xl shadow-sm border border-zinc-200/90 tracking-wide">
-            Not Available
+            Unavailable
           </span>
         </div>
       )}
@@ -62,13 +62,25 @@ function MenuImageThumbnail({ item }) {
 }
 
 export default function MenuCardGrid() {
-  const { menuItems, addToCart } = usePos()
+  const { menuItems, loadingMenu, addToCart } = usePos()
+
+  if (loadingMenu) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center h-64 text-center text-zinc-400 space-y-2">
+        <Loader2 className="w-6 h-6 animate-spin text-[#FF5C39]" />
+        <span className="text-xs font-medium">Loading menu...</span>
+      </div>
+    )
+  }
 
   return (
     <div className="flex-1 overflow-y-auto px-6 pb-6">
       {menuItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-center">
-          <p className="text-sm font-bold text-zinc-700">No dishes found</p>
+          <div className="w-12 h-12 rounded-2xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-300 mb-2">
+            <UtensilsCrossed className="w-6 h-6" />
+          </div>
+          <p className="text-sm font-bold text-zinc-700">No menu found</p>
           <p className="text-xs text-zinc-500 mt-1">Try adjusting your search or category filter.</p>
         </div>
       ) : (
@@ -83,18 +95,15 @@ export default function MenuCardGrid() {
                   isUnavailable ? 'border-zinc-200/60 opacity-90' : 'border-zinc-200/80'
                 }`}
               >
-                {/* Full-Width Dish Image with Light Not Available Overlay */}
+                {/* Full-Width Menu Image with Light Unavailable Overlay */}
                 <MenuImageThumbnail item={item} />
 
-                {/* Card Body Content */}
+                {/* Card Body Content (Clean title without description) */}
                 <div className="p-3.5 flex-1 flex flex-col justify-between">
                   <div>
                     <h3 className={`text-sm font-bold leading-snug ${isUnavailable ? 'text-zinc-500' : 'text-zinc-900'}`}>
                       {item.name}
                     </h3>
-                    <p className="text-[11px] text-zinc-500 line-clamp-2 mt-1 leading-relaxed">
-                      {item.desc}
-                    </p>
                   </div>
 
                   {/* Bottom Row: Price & Dedicated Add Button */}
@@ -111,7 +120,7 @@ export default function MenuCardGrid() {
                           ? 'bg-zinc-100 text-zinc-300 border border-zinc-200/70 cursor-not-allowed'
                           : 'bg-orange-50 hover:bg-[#FF5C39] text-[#FF5C39] hover:text-white border border-orange-200/80 hover:border-[#FF5C39] active:scale-[0.92] cursor-pointer'
                       }`}
-                      title={isUnavailable ? `${item.name} is currently not available` : `Add ${item.name} to order`}
+                      title={isUnavailable ? `${item.name} is currently unavailable` : `Add ${item.name} to order`}
                     >
                       <Plus className="w-4 h-4" />
                     </button>
