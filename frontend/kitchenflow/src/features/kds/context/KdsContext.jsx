@@ -111,6 +111,13 @@ export function KdsProvider({ children }) {
     }
   }, [playChime, addToast])
 
+  const addCreatedOrder = useCallback((newOrder) => {
+    setOrders(prev => [newOrder, ...prev])
+    setTotalCount(prev => prev + 1)
+    playChime(true)
+    addToast(`New order ${newOrder.order_number} created from POS`, 'new_order')
+  }, [playChime, addToast])
+
   const value = {
     orders,
     activeFilter,
@@ -125,7 +132,8 @@ export function KdsProvider({ children }) {
     loading,
     loadMore,
     markComplete,
-    simulateOrder
+    simulateOrder,
+    addCreatedOrder
   }
 
   return (

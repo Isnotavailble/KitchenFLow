@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Utensils, Plus } from 'lucide-react'
+import { Plus, ImageOff, ShoppingBag, Utensils } from 'lucide-react'
 import { useKds } from '../hooks/useKds'
 import { useElapsedTime } from '../hooks/useElapsedTime'
 import Badge from '../../../components/Badge'
@@ -11,7 +11,7 @@ function ItemThumbnail({ image, name }) {
   if (!image || hasError) {
     return (
       <div className="w-10 h-10 rounded-xl bg-zinc-100 border border-zinc-200/70 shrink-0 mt-0.5 flex items-center justify-center text-zinc-400 shadow-2xs">
-        <Utensils className="w-4 h-4 text-zinc-400" />
+        <ImageOff className="w-4 h-4 text-zinc-400" />
       </div>
     )
   }
@@ -31,6 +31,7 @@ export default function TicketCard({ ticket }) {
   const { markComplete } = useKds()
   const elapsed = useElapsedTime(ticket.created_at)
   const isCompleted = ticket.status === 'Completed'
+  const isTakeaway = ticket.orderType === 'takeaway'
 
   return (
     <div className={`bg-white rounded-2xl border ${isCompleted ? 'border-zinc-200/60' : 'border-zinc-200/80'} shadow-xs p-4 sm:p-5 flex flex-col h-[440px] select-none hover:shadow-sm transition-shadow min-w-[280px]`}>
@@ -56,23 +57,38 @@ export default function TicketCard({ ticket }) {
           )}
         </div>
 
-        {/* Badges Row: Placed neatly beneath the order number title */}
-        <div className="flex items-center space-x-1.5 mt-2">
+        {/* Badges Row: Status, Order Type (Dine-In/Takeaway), and Workload */}
+        <div className="flex flex-wrap items-center gap-1.5 mt-2">
           <Badge status={ticket.status} className="text-xs px-2 py-0.5" />
+          {ticket.orderType && (
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-zinc-100 text-zinc-700 border border-zinc-200 flex items-center space-x-1">
+              {isTakeaway ? (
+                <>
+                  <ShoppingBag className="w-3 h-3 text-zinc-500" />
+                  <span>Takeaway</span>
+                </>
+              ) : (
+                <>
+                  <Utensils className="w-3 h-3 text-zinc-500" />
+                  <span>Dine-In</span>
+                </>
+              )}
+            </span>
+          )}
           {ticket.workloadTier && (
             <WorkloadBadge tier={ticket.workloadTier} />
           )}
         </div>
       </div>
 
-      {/* 2. Scrollable Order Items List (Takes available height with internal scroll) */}
+      {/* 2. Scrollable Order Items List */}
       <div className="flex-1 min-h-0 py-3.5 pr-1.5 space-y-3.5 overflow-y-auto">
         {ticket.items.map((item, idx) => (
           <div key={idx} className="flex items-start space-x-3 text-xs">
             {/* Thumbnail Image or Empty State Icon Placeholder */}
             <ItemThumbnail image={item.image} name={item.name} />
 
-            {/* Title & Description */}
+            {/* Title, Description & Customization Note */}
             <div className="flex-1 min-w-0 pr-1">
               <span className="font-bold text-zinc-900 text-xs sm:text-sm leading-snug block">
                 {item.qty}x {item.name}
@@ -81,6 +97,11 @@ export default function TicketCard({ ticket }) {
                 <p className="text-[11px] sm:text-xs text-zinc-500 leading-tight mt-0.5 font-normal">
                   {item.desc}
                 </p>
+              )}
+              {item.itemCustomization && (
+                <div className="mt-1 inline-block bg-orange-50 border border-orange-200/80 text-amber-900 px-2 py-0.5 rounded text-[11px] font-medium">
+                  <span className="font-bold text-[#FF5C39]">Note:</span> {item.itemCustomization}
+                </div>
               )}
             </div>
           </div>
