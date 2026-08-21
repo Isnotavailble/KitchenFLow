@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-100 text-slate-900 font-sans antialiased selection:bg-amber-500 selection:text-slate-900">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KitchenFlow KDS - Kitchen Display System</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  
+  <!-- Google Fonts: Inter & JetBrains Mono for timers -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            kds: {
+              bg: '#f8fafc',
+              card: '#ffffff',
+              border: '#e2e8f0',
+              light: '#059669',
+              medium: '#d97706',
+              heavy: '#dc2626'
+            }
+          },
+          animation: {
+            'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'bounce-short': 'bounce 0.5s ease-in-out 2',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbars for touchscreen kitchen displays */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .dark ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #334155;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .touch-target {
+      min-height: 48px;
+      min-width: 48px;
+    }
+    .ticket-card {
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .ticket-card:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col overflow-hidden bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 select-none transition-colors duration-200">
+
+  <!-- HEADER / TOP NAVIGATION -->
+  <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between shadow-sm z-20 gap-3">
+    <!-- Brand & Station Identity -->
+    <div class="flex items-center space-x-3">
+      <div class="bg-gradient-to-tr from-amber-500 to-amber-600 text-slate-950 p-2 rounded-xl font-black flex items-center justify-center shadow-md shadow-amber-500/20">
+        <i class="fa-solid fa-fire-burner text-xl"></i>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-none">KitchenFlow <span class="text-amber-600 dark:text-amber-500 text-xs uppercase px-1.5 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded font-semibold ml-1">KDS</span></h1>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span> SSE Live Sync
+          </span>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Station 01: Hot Line & Prep</p>
+      </div>
+    </div>
+
+    <!-- Main View Navigation Tabs -->
+    <div class="flex items-center bg-slate-200/80 dark:bg-slate-950 p-1 rounded-xl border border-slate-300 dark:border-slate-800 space-x-1">
+      <button id="tab-tickets" onclick="switchTab('tickets')" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold transition-all bg-amber-500 text-slate-950 shadow-md">
+        <i class="fa-solid fa-list-check"></i>
+        <span>Active Tickets</span>
+        <span id="badge-open-count" class="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-slate-950 text-amber-400 font-black">6</span>
+      </button>
+
+      <button id="tab-items" onclick="switchTab('items')" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-300/60 dark:hover:bg-slate-900 transition-all">
+        <i class="fa-solid fa-layer-group"></i>
+        <span>Batch Prep View</span>
+        <span id="badge-items-count" class="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-slate-300 dark:bg-slate-800 text-slate-800 dark:text-slate-300 font-bold">18</span>
+      </button>
+
+      <button id="tab-history" onclick="switchTab('history')" class="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-300/60 dark:hover:bg-slate-900 transition-all">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <span>Completed</span>
+        <span id="badge-completed-count" class="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-slate-300 dark:bg-slate-800 text-slate-700 dark:text-slate-400 font-bold">0</span>
+      </button>
+    </div>
+
+    <!-- Action Controls, Audio, & Theme Switcher -->
+    <div class="flex items-center space-x-2">
+      <!-- Theme Switcher Button -->
+      <button id="btn-theme" onclick="toggleTheme()" title="Toggle Light/Dark Theme" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition">
+        <i id="icon-theme" class="fa-solid fa-moon text-indigo-600 dark:text-amber-400"></i>
+      </button>
+
+      <!-- Sound FX Toggle -->
+      <button id="btn-sound" onclick="toggleSound()" title="Toggle Kitchen Audio Chime" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition">
+        <i id="icon-sound" class="fa-solid fa-volume-high text-amber-600 dark:text-amber-400"></i>
+      </button>
+
+      <!-- Simulate Incoming SSE Ticket -->
+      <button onclick="simulateIncomingTicket()" class="flex items-center space-x-2 px-3 py-2 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-amber-400 rounded-xl text-xs font-bold transition shadow-sm active:scale-95">
+        <i class="fa-solid fa-plus-circle text-sm"></i>
+        <span class="hidden sm:inline">Simulate Cashier Ticket</span>
+      </button>
+
+      <!-- Refresh / Sync Manual -->
+      <button onclick="renderAll()" title="Refresh Dashboard" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition active:rotate-180 duration-300">
+        <i class="fa-solid fa-rotate"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- KDS METRICS & COMPLEXITY EXPLANATION BAR -->
+  <section class="bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 px-4 py-2 flex flex-wrap items-center justify-between text-xs gap-3">
+    <!-- Quick Performance Counters -->
+    <div class="flex items-center space-x-6">
+      <div class="flex items-center space-x-2">
+        <span class="text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">In Queue:</span>
+        <span id="stat-total-queue" class="text-slate-900 dark:text-white font-extrabold text-sm bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700">6</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span class="text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">Avg Prep Time:</span>
+        <span id="stat-avg-prep" class="text-emerald-700 dark:text-emerald-400 font-mono font-bold text-sm bg-emerald-50 dark:bg-slate-800 px-2 py-0.5 rounded border border-emerald-200 dark:border-slate-700">4m 12s</span>
+      </div>
+      <div class="hidden md:flex items-center space-x-2">
+        <span class="text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">Heavy Workload:</span>
+        <span id="stat-heavy-count" class="text-rose-700 dark:text-rose-400 font-bold text-sm bg-rose-50 dark:bg-rose-500/10 px-2 py-0.5 rounded border border-rose-200 dark:border-rose-500/20">2 Tickets</span>
+      </div>
+    </div>
+
+    <!-- Workload Complexity Formula Legend -->
+    <div class="flex items-center space-x-3 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-950 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-800">
+      <span class="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px]"><i class="fa-solid fa-calculator mr-1"></i>Complexity Rating <span class="font-mono text-slate-400 dark:text-slate-500">∑(Q × W)</span>:</span>
+      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span> Light (1-4)
+      </span>
+      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1"></span> Medium (5-10)
+      </span>
+      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30">
+        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1"></span> Heavy (11+)
+      </span>
+    </div>
+  </section>
+
+  <!-- TOOLBAR & FILTERS -->
+  <div class="bg-slate-200/50 dark:bg-slate-950 px-4 py-2 border-b border-slate-300 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+    <!-- Workload Filter Buttons -->
+    <div class="flex items-center space-x-1.5">
+      <span class="text-xs text-slate-600 dark:text-slate-400 font-bold mr-1">Filter:</span>
+      <button onclick="setFilter('ALL')" id="filter-ALL" class="px-3 py-1 rounded-lg text-xs font-bold bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 shadow-sm">All</button>
+      <button onclick="setFilter('LIGHT')" id="filter-LIGHT" class="px-3 py-1 rounded-lg text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/10 border border-transparent">Light</button>
+      <button onclick="setFilter('MEDIUM')" id="filter-MEDIUM" class="px-3 py-1 rounded-lg text-xs font-bold text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-500/10 border border-transparent">Medium</button>
+      <button onclick="setFilter('HEAVY')" id="filter-HEAVY" class="px-3 py-1 rounded-lg text-xs font-bold text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/10 border border-transparent">Heavy</button>
+    </div>
+
+    <!-- Search / Ticket ID lookup -->
+    <div class="flex items-center space-x-2">
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
+        <input type="text" id="input-search" oninput="handleSearch()" placeholder="Search #order or item..." class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white pl-8 pr-3 py-1.5 rounded-lg focus:outline-none focus:border-amber-500 w-44 md:w-60 shadow-sm">
+      </div>
+      <!-- Sort Order Toggle -->
+      <button onclick="toggleSortOrder()" id="btn-sort" class="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center space-x-1 shadow-sm">
+        <i class="fa-solid fa-arrow-up-1-9"></i>
+        <span id="text-sort">Oldest First</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN KITCHEN DISPLAY CONTENT -->
+  <main class="flex-1 overflow-x-auto overflow-y-auto p-4 bg-slate-100 dark:bg-slate-950 relative">
+
+    <!-- VIEW 1: ACTIVE TICKET GRID BOARD -->
+    <div id="view-tickets" class="h-full">
+      <div id="tickets-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 pb-12">
+        <!-- Ticket Cards populated dynamically via JavaScript -->
+      </div>
+      <!-- Empty Queue Placeholder -->
+      <div id="tickets-empty" class="hidden flex-col items-center justify-center h-80 text-center text-slate-500">
+        <i class="fa-solid fa-square-check text-6xl mb-4 text-emerald-500/40"></i>
+        <h2 class="text-xl font-bold text-slate-700 dark:text-slate-300">Kitchen Queue Clean!</h2>
+        <p class="text-sm text-slate-500 mt-1">All waiting orders have been completed and bumped.</p>
+        <button onclick="simulateIncomingTicket()" class="mt-4 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-bold text-xs transition shadow-md">
+          <i class="fa-solid fa-plus mr-1"></i> Add Test Order
+        </button>
+      </div>
+    </div>
+
+    <!-- VIEW 2: BATCH PREP / ITEM SUMMARY VIEW -->
+    <div id="view-items" class="hidden h-full">
+      <div class="mb-4 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-3 rounded-xl flex items-center justify-between shadow-sm">
+        <div>
+          <h2 class="text-sm font-bold text-slate-900 dark:text-white"><i class="fa-solid fa-fire text-amber-500 mr-2"></i>Consolidated Batch Prep View</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Total quantities of each item across all open waiting tickets to speed up cooking batches.</p>
+        </div>
+        <span class="text-xs text-slate-400 font-mono">Auto-Aggregated from SSE Queue</span>
+      </div>
+
+      <div id="batch-items-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-12">
+        <!-- Batch Item Cards injected here -->
+      </div>
+    </div>
+
+    <!-- VIEW 3: COMPLETED ORDERS HISTORY -->
+    <div id="view-history" class="hidden h-full">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-md">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div>
+            <h2 class="font-bold text-slate-900 dark:text-white text-base"><i class="fa-solid fa-clock-rotate-left text-amber-500 mr-2"></i>Recently Completed Orders</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Tickets bumped from the kitchen display in this shift. Click "Restore" if bumped by accident.</p>
+          </div>
+          <button onclick="clearHistory()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-lg transition border border-slate-200 dark:border-slate-700">
+            Clear History
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+            <thead class="bg-slate-100 dark:bg-slate-950 uppercase font-mono text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+              <tr>
+                <th class="p-3">Order #</th>
+                <th class="p-3">Created</th>
+                <th class="p-3">Completed At</th>
+                <th class="p-3">Total Items</th>
+                <th class="p-3">Complexity</th>
+                <th class="p-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body" class="divide-y divide-slate-200 dark:divide-slate-800/60">
+              <!-- Completed items injected here -->
+            </tbody>
+          </table>
+        </div>
+        <div id="history-empty" class="p-8 text-center text-slate-500 hidden">
+          No completed orders in history yet.
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none max-w-sm w-full px-2"></div>
+
+  <!-- RESTRICTION ALERT MODAL (CHEF PERMISSION RULE NOTICE) -->
+  <div id="modal-restriction" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+      <div class="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-500/10 border border-rose-300 dark:border-rose-500/20 text-rose-600 dark:text-rose-500 flex items-center justify-center text-2xl mb-4">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900 dark:text-white">Chef Restriction Enforced</h3>
+      <p class="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
+        Per system user story <strong class="text-slate-800 dark:text-slate-200">US-BOH-02</strong>, Back-of-House Chefs do not have permission to cancel orders or mark menu items unavailable.
+      </p>
+      <p class="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
+        Only the <strong class="text-amber-600 dark:text-amber-400">Restaurant Owner / Admin</strong> can cancel paid orders or alter menu item availability to prevent fraud.
+      </p>
+      <div class="mt-6 flex justify-end">
+        <button onclick="closeModal('modal-restriction')" class="px-4 py-2 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-xl text-xs font-bold border border-slate-800 dark:border-slate-700 transition">
+          Understood
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APP LOGIC -->
+  <script>
+    /* ITEM WORKLOAD TIERS CONFIGURATION (US-BOH-01 Specification) */
+    const WORKLOAD_TIERS = {
+      LIGHT: 1,    // Drinks, salads, simple ice creams
+      MEDIUM: 4,   // Sandwiches, wraps, standard fries
+      HEAVY: 10    // Multi-component, complex steaks, custom combos
+    };
+
+    /* SAMPLE MENU CATALOGUE WITH SNAPSHOT TIERS */
+    const MENU_ITEMS = [
+      { id: 'm1', name: 'Double Bacon Smash Burger', tier: WORKLOAD_TIERS.HEAVY, category: 'Mains' },
+      { id: 'm2', name: 'Classic Cheeseburger', tier: WORKLOAD_TIERS.MEDIUM, category: 'Mains' },
+      { id: 'm3', name: 'Crispy Chicken Wrap', tier: WORKLOAD_TIERS.MEDIUM, category: 'Mains' },
+      { id: 'm4', name: 'Truffle Parmesan Fries', tier: WORKLOAD_TIERS.MEDIUM, category: 'Sides' },
+      { id: 'm5', name: 'Garden Caesar Salad', tier: WORKLOAD_TIERS.LIGHT, category: 'Sides' },
+      { id: 'm6', name: 'Fountain Soft Drink', tier: WORKLOAD_TIERS.LIGHT, category: 'Drinks' },
+      { id: 'm7', name: 'Loaded Steak Nachos', tier: WORKLOAD_TIERS.HEAVY, category: 'Mains' },
+      { id: 'm8', name: 'Iced Lemon Tea', tier: WORKLOAD_TIERS.LIGHT, category: 'Drinks' }
+    ];
+
+    /* APP INITIAL STATE */
+    let currentTab = 'tickets';
+    let currentFilter = 'ALL';
+    let searchQuery = '';
+    let sortAscending = true; // true = oldest first
+    let soundEnabled = true;
+    let isDarkMode = false; // Default to Light Mode
+
+    // Active order tickets queue
+    let activeTickets = [
+      {
+        id: 'ord-101',
+        order_number: '#041',
+        created_at: new Date(Date.now() - 12 * 60 * 1000), // 12 mins ago (ALARM TIMER)
+        type: 'Dine-In',
+        table: 'Table 04',
+        status: 'waiting',
+        items: [
+          { name: 'Loaded Steak Nachos', qty: 1, tier: WORKLOAD_TIERS.HEAVY, notes: 'Extra jalapenos, cheese on side' },
+          { name: 'Classic Cheeseburger', qty: 2, tier: WORKLOAD_TIERS.MEDIUM, notes: 'No pickles' },
+          { name: 'Fountain Soft Drink', qty: 3, tier: WORKLOAD_TIERS.LIGHT, notes: '' }
+        ]
+      },
+      {
+        id: 'ord-102',
+        order_number: '#042',
+        created_at: new Date(Date.now() - 6 * 60 * 1000), // 6 mins ago (MEDIUM TIMER)
+        type: 'Takeout',
+        table: 'Counter Pickup',
+        status: 'waiting',
+        items: [
+          { name: 'Double Bacon Smash Burger', qty: 2, tier: WORKLOAD_TIERS.HEAVY, notes: 'Well done patty' },
+          { name: 'Truffle Parmesan Fries', qty: 2, tier: WORKLOAD_TIERS.MEDIUM, notes: 'Extra sauce' }
+        ]
+      },
+      {
+        id: 'ord-103',
+        order_number: '#043',
+        created_at: new Date(Date.now() - 3 * 60 * 1000), // 3 mins ago (FRESH)
+        type: 'QR Pre-Order',
+        table: 'Express QR #09',
+        status: 'waiting',
+        items: [
+          { name: 'Crispy Chicken Wrap', qty: 1, tier: WORKLOAD_TIERS.MEDIUM, notes: 'Spicy mayo' },
+          { name: 'Garden Caesar Salad', qty: 1, tier: WORKLOAD_TIERS.LIGHT, notes: 'Dressing on side' },
+          { name: 'Iced Lemon Tea', qty: 1, tier: WORKLOAD_TIERS.LIGHT, notes: 'Less ice' }
+        ]
+      },
+      {
+        id: 'ord-104',
+        order_number: '#044',
+        created_at: new Date(Date.now() - 2 * 60 * 1000),
+        type: 'Dine-In',
+        table: 'Table 12',
+        status: 'waiting',
+        items: [
+          { name: 'Classic Cheeseburger', qty: 3, tier: WORKLOAD_TIERS.MEDIUM, notes: 'Gluten-free bun for 1' },
+          { name: 'Truffle Parmesan Fries', qty: 1, tier: WORKLOAD_TIERS.MEDIUM, notes: '' }
+        ]
+      },
+      {
+        id: 'ord-105',
+        order_number: '#045',
+        created_at: new Date(Date.now() - 1 * 60 * 1000),
+        type: 'Dine-In',
+        table: 'Table 02',
+        status: 'waiting',
+        items: [
+          { name: 'Fountain Soft Drink', qty: 2, tier: WORKLOAD_TIERS.LIGHT, notes: 'Coke Zero' }
+        ]
+      },
+      {
+        id: 'ord-106',
+        order_number: '#046',
+        created_at: new Date(Date.now() - 30 * 1000), // 30 sec ago
+        type: 'Takeout',
+        table: 'Order #046',
+        status: 'waiting',
+        items: [
+          { name: 'Double Bacon Smash Burger', qty: 1, tier: WORKLOAD_TIERS.HEAVY, notes: 'Double cheese' },
+          { name: 'Loaded Steak Nachos', qty: 1, tier: WORKLOAD_TIERS.HEAVY, notes: '' },
+          { name: 'Crispy Chicken Wrap', qty: 1, tier: WORKLOAD_TIERS.MEDIUM, notes: '' }
+        ]
+      }
+    ];
+
+    let completedTickets = [];
+    let ticketCounter = 47;
+
+    function toggleTheme() {
+      isDarkMode = !isDarkMode;
+      const html = document.documentElement;
+      const icon = document.getElementById('icon-theme');
+      if (isDarkMode) {
+        html.classList.add('dark');
+        icon.className = 'fa-solid fa-sun text-amber-400';
+        showToast('Switched to Dark Theme', 'info');
+      } else {
+        html.classList.remove('dark');
+        icon.className = 'fa-solid fa-moon text-indigo-600';
+        showToast('Switched to Light Theme', 'info');
+      }
+    }
+
+    // Web Audio API Kitchen Chime Generator (No external audio file dependency)
+    function playKitchenChime() {
+      if (!soundEnabled) return;
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        
+        const now = ctx.currentTime;
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc1.type = 'sine';
+        osc2.type = 'triangle';
+
+        osc1.frequency.setValueAtTime(587.33, now); // D5
+        osc2.frequency.setValueAtTime(880, now + 0.1); // A5
+
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc1.start(now);
+        osc2.start(now + 0.1);
+        osc1.stop(now + 0.6);
+        osc2.stop(now + 0.6);
+      } catch (e) {
+        console.log('Audio playback prevented');
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const icon = document.getElementById('icon-sound');
+      const btn = document.getElementById('btn-sound');
+      if (soundEnabled) {
+        icon.className = 'fa-solid fa-volume-high text-amber-600 dark:text-amber-400';
+        btn.classList.remove('opacity-50');
+        showToast('Audio Notifications Enabled', 'info');
+      } else {
+        icon.className = 'fa-solid fa-volume-xmark text-slate-400';
+        btn.classList.add('opacity-50');
+        showToast('Audio Notifications Muted', 'info');
+      }
+    }
+
+    /**
+     * Mathematical Formula implementation per specification PRD:
+     * Total Points = Sum(Quantity_i * Workload_Tier_i)
+     * Tiers: Light (0-4 pts), Medium (5-10 pts), Heavy (11+ pts)
+     */
+    function calculateOrderComplexity(items) {
+      let totalPoints = 0;
+      items.forEach(item => {
+        totalPoints += (item.qty * item.tier);
+      });
+
+      let category = 'LIGHT';
+      let colorClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30';
+      let badgeBg = 'bg-emerald-500';
+
+      if (totalPoints >= 5 && totalPoints <= 10) {
+        category = 'MEDIUM';
+        colorClass = 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400 border-amber-200 dark:border-amber-500/30';
+        badgeBg = 'bg-amber-500';
+      } else if (totalPoints >= 11) {
+        category = 'HEAVY';
+        colorClass = 'bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-400 border-rose-200 dark:border-rose-500/30';
+        badgeBg = 'bg-rose-500';
+      }
+
+      return {
+        points: totalPoints,
+        category: category,
+        colorClass: colorClass,
+        badgeBg: badgeBg
+      };
+    }
+
+    /* Elapsed Time Counter Calculator & Status Styling */
+    function getElapsedTime(date) {
+      const now = new Date();
+      const diffMs = now - date;
+      const diffSec = Math.floor(diffMs / 1000);
+      const mins = Math.floor(diffSec / 60);
+      const secs = diffSec % 60;
+
+      const formatted = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      
+      let urgencyClass = 'text-emerald-800 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/40 dark:border-emerald-800';
+      let isCritical = false;
+
+      if (mins >= 5 && mins < 10) {
+        urgencyClass = 'text-amber-800 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/40 dark:border-amber-800';
+      } else if (mins >= 10) {
+        urgencyClass = 'text-rose-800 bg-rose-100 border-rose-300 dark:text-rose-400 dark:bg-rose-950/50 dark:border-rose-800 animate-pulse-fast';
+        isCritical = true;
+      }
+
+      return {
+        formatted,
+        mins,
+        urgencyClass,
+        isCritical
+      };
+    }
+
+    /* MAIN TICKET BOARD RENDERER */
+    function renderTickets() {
+      const container = document.getElementById('tickets-container');
+      const emptyState = document.getElementById('tickets-empty');
+      container.innerHTML = '';
+
+      // Apply Filter & Search
+      let filtered = activeTickets.filter(ticket => {
+        const complexity = calculateOrderComplexity(ticket.items);
+        const matchesFilter = (currentFilter === 'ALL') || (complexity.category === currentFilter);
+        
+        const query = searchQuery.toLowerCase().trim();
+        const matchesSearch = query === '' || 
+          ticket.order_number.toLowerCase().includes(query) ||
+          ticket.table.toLowerCase().includes(query) ||
+          ticket.items.some(i => i.name.toLowerCase().includes(query) || i.notes.toLowerCase().includes(query));
+
+        return matchesFilter && matchesSearch;
+      });
+
+      // Sort chronological
+      filtered.sort((a, b) => {
+        return sortAscending ? (a.created_at - b.created_at) : (b.created_at - a.created_at);
+      });
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+        emptyState.classList.add('flex');
+      } else {
+        emptyState.classList.add('hidden');
+        emptyState.classList.remove('flex');
+      }
+
+      filtered.forEach(ticket => {
+        const complexity = calculateOrderComplexity(ticket.items);
+        const elapsed = getElapsedTime(ticket.created_at);
+
+        const card = document.createElement('div');
+        card.className = `ticket-card bg-white dark:bg-slate-900 rounded-2xl border ${elapsed.isCritical ? 'border-rose-400 dark:border-rose-500/80 shadow-lg shadow-rose-200 dark:shadow-rose-950/50' : 'border-slate-200 dark:border-slate-800'} flex flex-col justify-between overflow-hidden shadow-md`;
+
+        // Card Header
+        let cardHTML = `
+          <div>
+            <div class="px-3 py-2 bg-slate-100 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="text-xl font-black font-mono text-slate-900 dark:text-white tracking-tight">${ticket.order_number}</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 uppercase">${ticket.type}</span>
+              </div>
+              
+              <!-- Elapsed Live Clock Badge -->
+              <div class="flex items-center space-x-1 px-2 py-0.5 rounded-lg border text-xs font-mono font-bold ${elapsed.urgencyClass}">
+                <i class="fa-solid fa-stopwatch text-[10px]"></i>
+                <span>${elapsed.formatted}</span>
+              </div>
+            </div>
+
+            <!-- Table & Complexity Bar -->
+            <div class="px-3 py-1.5 bg-slate-50 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800/50 flex items-center justify-between text-xs">
+              <span class="text-slate-600 dark:text-slate-400 font-semibold truncate"><i class="fa-solid fa-location-dot mr-1 text-slate-400 dark:text-slate-500"></i>${ticket.table}</span>
+              
+              <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${complexity.colorClass}" title="Calculated Formula: SUM(Qty * Workload Tier)">
+                <span class="w-1.5 h-1.5 rounded-full ${complexity.badgeBg} mr-1"></span>
+                ${complexity.category} (${complexity.points}pts)
+              </span>
+            </div>
+
+            <!-- Ticket Items List -->
+            <div class="p-3 space-y-2.5 max-h-80 overflow-y-auto">
+        `;
+
+        ticket.items.forEach(item => {
+          let tierBadge = '';
+          if (item.tier === WORKLOAD_TIERS.HEAVY) {
+            tierBadge = `<span class="text-[9px] font-bold text-rose-700 dark:text-rose-400 bg-rose-100 dark:bg-rose-500/10 px-1 py-0.5 rounded ml-1">HEAVY</span>`;
+          }
+
+          cardHTML += `
+            <div class="text-xs">
+              <div class="flex items-start justify-between font-bold text-slate-900 dark:text-white">
+                <span class="flex items-center space-x-1.5">
+                  <span class="bg-amber-500 text-slate-950 font-black px-1.5 py-0.5 rounded text-xs min-w-[22px] text-center">${item.qty}x</span>
+                  <span class="leading-snug">${item.name}</span>
+                </span>
+                ${tierBadge}
+              </div>
+              ${item.notes ? `
+                <div class="mt-1 ml-7 px-2 py-1 bg-amber-50 dark:bg-amber-500/10 border-l-2 border-amber-500 text-[11px] text-amber-900 dark:text-amber-300 font-semibold rounded-r">
+                  <i class="fa-solid fa-pen-to-square text-[9px] mr-1 text-amber-600"></i>${item.notes}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        });
+
+        cardHTML += `
+            </div>
+          </div>
+
+          <!-- Card Footer - US-BOH-02 SINGLE TOUCH BUMP BUTTON -->
+          <div class="p-2 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800/80">
+            <button onclick="bumpOrder('${ticket.id}')" class="touch-target w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black rounded-xl text-sm tracking-wide uppercase flex items-center justify-center space-x-2 transition shadow-md shadow-emerald-900/20">
+              <i class="fa-solid fa-check-double text-base"></i>
+              <span>BUMP / DONE</span>
+            </button>
+          </div>
+        `;
+
+        card.innerHTML = cardHTML;
+        container.appendChild(card);
+      });
+
+      // Update Header Stats
+      document.getElementById('stat-total-queue').innerText = activeTickets.length;
+      document.getElementById('badge-open-count').innerText = activeTickets.length;
+      
+      const heavyCount = activeTickets.filter(t => calculateOrderComplexity(t.items).category === 'HEAVY').length;
+      document.getElementById('stat-heavy-count').innerText = `${heavyCount} Tickets`;
+    }
+
+    /* BATCH PREP / MENU ITEM CONSOLIDATED VIEW (US-BOH-03 Requirements) */
+    function renderBatchItems() {
+      const container = document.getElementById('batch-items-container');
+      container.innerHTML = '';
+
+      // Aggregate open items across all waiting tickets
+      const itemMap = {};
+
+      activeTickets.forEach(ticket => {
+        ticket.items.forEach(item => {
+          if (!itemMap[item.name]) {
+            itemMap[item.name] = {
+              name: item.name,
+              totalQty: 0,
+              tier: item.tier,
+              tickets: []
+            };
+          }
+          itemMap[item.name].totalQty += item.qty;
+          itemMap[item.name].tickets.push({
+            orderNumber: ticket.order_number,
+            qty: item.qty,
+            notes: item.notes
+          });
+        });
+      });
+
+      const aggregatedList = Object.values(itemMap);
+      document.getElementById('badge-items-count').innerText = aggregatedList.reduce((acc, curr) => acc + curr.totalQty, 0);
+
+      if (aggregatedList.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-12 text-slate-500">
+            <i class="fa-solid fa-utensils text-4xl mb-2"></i>
+            <p class="text-sm font-bold">No active items to prepare.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Sort by total quantity descending
+      aggregatedList.sort((a, b) => b.totalQty - a.totalQty);
+
+      aggregatedList.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm flex flex-col justify-between';
+
+        let ticketListHTML = '';
+        item.tickets.forEach(t => {
+          ticketListHTML += `
+            <div class="flex items-center justify-between text-xs py-1 border-b border-slate-100 dark:border-slate-800/50 last:border-0">
+              <span class="font-mono font-bold text-amber-600 dark:text-amber-400">${t.orderNumber}</span>
+              <span class="font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">${t.qty}x</span>
+              <span class="text-slate-500 dark:text-slate-400 truncate max-w-[120px]">${t.notes || 'No notes'}</span>
+            </div>
+          `;
+        });
+
+        let tierTag = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400">Light</span>';
+        if (item.tier === WORKLOAD_TIERS.MEDIUM) tierTag = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400">Medium</span>';
+        if (item.tier === WORKLOAD_TIERS.HEAVY) tierTag = '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-400">Heavy</span>';
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="font-bold text-slate-900 dark:text-white text-base leading-tight">${item.name}</h3>
+                <div class="mt-1">${tierTag}</div>
+              </div>
+              <div class="bg-amber-500 text-slate-950 font-black text-2xl px-3 py-1 rounded-xl shadow-md">
+                ${item.totalQty}
+              </div>
+            </div>
+
+            <div class="mt-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <span class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 block mb-1">Open Tickets Requesting:</span>
+              <div class="space-y-1 max-h-36 overflow-y-auto pr-1">
+                ${ticketListHTML}
+              </div>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    /* COMPLETED ORDERS LOG RENDERER */
+    function renderHistory() {
+      const tbody = document.getElementById('history-table-body');
+      const emptyState = document.getElementById('history-empty');
+      tbody.innerHTML = '';
+
+      document.getElementById('badge-completed-count').innerText = completedTickets.length;
+
+      if (completedTickets.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      } else {
+        emptyState.classList.add('hidden');
+      }
+
+      completedTickets.forEach(ticket => {
+        const complexity = calculateOrderComplexity(ticket.items);
+        const totalItems = ticket.items.reduce((acc, i) => acc + i.qty, 0);
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 dark:hover:bg-slate-900/50 transition';
+        tr.innerHTML = `
+          <td class="p-3 font-mono font-bold text-amber-600 dark:text-amber-400">${ticket.order_number}</td>
+          <td class="p-3 text-slate-500 dark:text-slate-400">${ticket.created_at.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+          <td class="p-3 text-emerald-700 dark:text-emerald-400 font-semibold">${ticket.completed_at.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+          <td class="p-3 font-bold text-slate-900 dark:text-white">${totalItems} items</td>
+          <td class="p-3">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border ${complexity.colorClass}">
+              ${complexity.category} (${complexity.points}pts)
+            </span>
+          </td>
+          <td class="p-3 text-right">
+            <button onclick="restoreOrder('${ticket.id}')" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-lg border border-slate-300 dark:border-slate-700 transition">
+              <i class="fa-solid fa-arrow-rotate-left mr-1"></i>Restore
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    /* SINGLE TOUCH BUMP ORDER ACTION (US-BOH-02) */
+    function bumpOrder(orderId) {
+      const index = activeTickets.findIndex(t => t.id === orderId);
+      if (index === -1) return;
+
+      const [completed] = activeTickets.splice(index, 1);
+      completed.completed_at = new Date();
+      completed.status = 'completed';
+      completedTickets.unshift(completed);
+
+      // Play soft sound tone feedback
+      playKitchenChime();
+
+      showToast(`Order ${completed.order_number} Bumped & Marked Completed!`, 'success');
+
+      renderAll();
+    }
+
+    /* RESTORE BUMPED ORDER BACK TO QUEUE */
+    function restoreOrder(orderId) {
+      const index = completedTickets.findIndex(t => t.id === orderId);
+      if (index === -1) return;
+
+      const [restored] = completedTickets.splice(index, 1);
+      restored.status = 'waiting';
+      activeTickets.push(restored);
+
+      showToast(`Order ${restored.order_number} restored to active queue`, 'info');
+      renderAll();
+    }
+
+    /* CLEAR COMPLETED HISTORY LOG */
+    function clearHistory() {
+      completedTickets = [];
+      showToast('Completed history cleared', 'info');
+      renderAll();
+    }
+
+    /* SIMULATE SSE INCOMING REAL-TIME CASHIER ORDER */
+    function simulateIncomingTicket() {
+      ticketCounter++;
+      const numItems = Math.floor(Math.random() * 3) + 1;
+      const selectedItems = [];
+
+      for (let i = 0; i < numItems; i++) {
+        const randomItem = MENU_ITEMS[Math.floor(Math.random() * MENU_ITEMS.length)];
+        selectedItems.push({
+          name: randomItem.name,
+          qty: Math.floor(Math.random() * 2) + 1,
+          tier: randomItem.tier,
+          notes: Math.random() > 0.6 ? 'Special kitchen note' : ''
+        });
+      }
+
+      const newOrder = {
+        id: `ord-${Date.now()}`,
+        order_number: `#0${ticketCounter}`,
+        created_at: new Date(),
+        type: Math.random() > 0.5 ? 'Dine-In' : 'Takeout',
+        table: `Table ${Math.floor(Math.random() * 15) + 1}`,
+        status: 'waiting',
+        items: selectedItems
+      };
+
+      activeTickets.push(newOrder);
+
+      // Trigger Chime
+      playKitchenChime();
+
+      showToast(`⚡ New Order ${newOrder.order_number} Received via SSE!`, 'new_order');
+      renderAll();
+    }
+
+    /* NAVIGATION TAB SWITCHER */
+    function switchTab(tabName) {
+      currentTab = tabName;
+
+      const tabs = ['tickets', 'items', 'history'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        const view = document.getElementById(`view-${t}`);
+
+        if (t === tabName) {
+          btn.className = 'flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold transition-all bg-amber-500 text-slate-950 shadow-md';
+          view.classList.remove('hidden');
+        } else {
+          btn.className = 'flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-300/60 dark:hover:bg-slate-900 transition-all';
+          view.classList.add('hidden');
+        }
+      });
+
+      renderAll();
+    }
+
+    /* FILTER AND SEARCH CONTROLS */
+    function setFilter(filterType) {
+      currentFilter = filterType;
+      ['ALL', 'LIGHT', 'MEDIUM', 'HEAVY'].forEach(f => {
+        const btn = document.getElementById(`filter-${f}`);
+        if (f === filterType) {
+          btn.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 shadow-sm';
+        } else {
+          btn.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-900 border border-transparent';
+        }
+      });
+      renderTickets();
+    }
+
+    function handleSearch() {
+      searchQuery = document.getElementById('input-search').value;
+      renderTickets();
+    }
+
+    function toggleSortOrder() {
+      sortAscending = !sortAscending;
+      document.getElementById('text-sort').innerText = sortAscending ? 'Oldest First' : 'Newest First';
+      renderTickets();
+    }
+
+    /* TOAST NOTIFICATION BENCHMARK */
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+
+      let bg = 'bg-slate-900 text-white border-slate-700';
+      if (type === 'success') bg = 'bg-emerald-900 text-emerald-100 border-emerald-700';
+      if (type === 'new_order') bg = 'bg-amber-500 text-slate-950 font-black border-amber-600 animate-bounce-short shadow-xl';
+
+      toast.className = `p-3 rounded-xl border ${bg} shadow-xl flex items-center justify-between text-xs font-bold pointer-events-auto transition-all duration-300 transform translate-y-2`;
+      toast.innerHTML = `
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid ${type === 'success' ? 'fa-circle-check text-emerald-300' : type === 'new_order' ? 'fa-bell text-slate-950 animate-pulse' : 'fa-circle-info text-sky-400'}"></i>
+          <span>${message}</span>
+        </div>
+        <button onclick="this.parentElement.remove()" class="ml-4 opacity-70 hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>
+      `;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-4');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+      document.getElementById(id).classList.add('flex');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+      document.getElementById(id).classList.remove('flex');
+    }
+
+    /* MASTER RENDER DISPATCHER */
+    function renderAll() {
+      if (currentTab === 'tickets') renderTickets();
+      if (currentTab === 'items') renderBatchItems();
+      if (currentTab === 'history') renderHistory();
+    }
+
+    /* TIMER TICKER FOR ELAPSED ORDER CLOCKS */
+    setInterval(() => {
+      if (currentTab === 'tickets') {
+        renderTickets();
+      }
+    }, 1000);
+
+    /* INITIALIZATION ON WINDOW LOAD */
+    window.onload = function() {
+      renderAll();
+      showToast('KDS Terminal Connected in Light Mode', 'info');
+    };
+  </script>
+</body>
+</html>
