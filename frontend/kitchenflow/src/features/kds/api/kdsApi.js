@@ -39,8 +39,9 @@ export const kdsApi = {
           desc: '',
           price: i.unitPrice ? i.unitPrice / 100 : 0,
           image: i.imageUrl || i.image || i.menuImageUrl || null,
-          itemCustomization: i.itemNote || null
+          itemNote: i.itemNote || null
         }))
+
       }
     })
 

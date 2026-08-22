@@ -5,6 +5,8 @@ import KdsHeader from './components/KdsHeader'
 import KdsFilterRow from './components/KdsFilterRow'
 import TicketCard from './components/TicketCard'
 
+
+
 const gridComponents = {
   List: forwardRef(({ style, children, ...props }, ref) => (
     <div
@@ -63,6 +65,8 @@ export default function KdsPage() {
       <KdsFilterRow />
 
       {/* Main Ticket Grid with VirtuosoGrid virtualization */}
+
+
       <main className="flex-1 h-full overflow-hidden">
         {loading && orders.length === 0 ? (
           <div className="flex-1 flex items-center justify-center h-80 text-zinc-500 text-xs font-mono">

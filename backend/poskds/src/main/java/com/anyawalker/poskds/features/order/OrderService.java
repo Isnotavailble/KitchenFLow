@@ -176,7 +176,9 @@ public class OrderService {
                     orderItem.setUnitPrice(menuEntity.getPrice());
                     orderItem.setQuantity(orderItemRequest.quantity());
                     orderItem.setOrderEntity(order);
+                    orderItem.setItemNotes(orderItemRequest.itemNote());
                     return orderItem;
+
                 })
                 .toList();
 
@@ -293,6 +295,21 @@ public class OrderService {
                     .orElseThrow(() -> new OrderFailureException("Order with Id " + orderId + " doesn't exist"));
 
         String currentStatus = targetOrderEntity.getStatus();
+        List<OrderItemEntity> orderItemEntityList = targetOrderEntity.getOrderItemEntityList();
+
+        //get the unavailable order item if the list is not null which mean we got it!
+        List<Integer> menuIds = orderItemEntityList.stream()
+                .filter(orderItemEntity -> !orderItemEntity.getMenuEntity().isAvailable())
+                .map(orderItemEntity -> orderItemEntity.getMenuEntity().getId()).toList();
+
+        if (!menuIds.isEmpty()){
+            List<String> menuNames = menuRepo.findMenuNamesByIds(menuIds);
+            String cleanName = menuNames.isEmpty() ? "unknow items" : menuNames.toString()
+                    .replace("[","").replace("]","").trim();
+
+            throw new OrderFailureException("Order Items " +  cleanName + " are unavailable.");
+        }
+
         //check if the incoming status is the same
         if (nextStatus.equals(currentStatus))
             throw new AlreadyUpdatedException("Already updated");
@@ -364,7 +381,7 @@ public class OrderService {
 
         if (!unavailableMenuNames.isEmpty()) {
             if (unavailableMenuNames.size() == 1) {
-                throw new OrderFailureException(unavailableMenuNames.get(0) + " is not available");
+                throw new OrderFailureException(unavailableMenuNames.getFirst() + " is not available");
             } else {
                 throw new OrderFailureException(String.join(", ", unavailableMenuNames) + " are not available");
             }

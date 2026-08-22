@@ -3,6 +3,7 @@ import { KdsContext } from './kdsContextDef'
 import { kdsApi } from '../api/kdsApi'
 import { orderApi } from '../../order/api/orderApi'
 import { categoryApi } from '../../category/api/categoryApi'
+import { menuApi } from '../../menu/api/menuApi'
 import { useToast } from '../../../hooks/useToast'
 
 const READ_NOTIFICATIONS_KEY = 'kf_read_notification_ids'
@@ -33,10 +34,33 @@ export function KdsProvider({ children }) {
   const [searchOrderNumber, setSearchOrderNumber] = useState('')
   const [menuFilter, setMenuFilter] = useState('ALL')
   const [categories, setCategories] = useState([])
+  const [unavailableMenuItems, setUnavailableMenuItems] = useState([])
+  const [isAlertBannerDismissed, setIsAlertBannerDismissed] = useState(false)
   const [page, setPage] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
+
+  // Load initial unavailable menu items from Menu catalog
+  useEffect(() => {
+    let isMounted = true
+    async function fetchInitialUnavailable() {
+      try {
+        const res = await menuApi.getAllMenu({ size: 100 })
+        const items = Array.isArray(res) ? res : (res?.items || [])
+        const unavail = items.filter((m) => m.isAvailable === false)
+        if (isMounted) {
+          setUnavailableMenuItems(unavail)
+        }
+      } catch (err) {
+        console.error('Failed to load menu availability in KDS:', err)
+      }
+    }
+    fetchInitialUnavailable()
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   // Load categories directly from Category database table
   useEffect(() => {
@@ -56,6 +80,7 @@ export function KdsProvider({ children }) {
       isMounted = false
     }
   }, [])
+
 
   // Helper to map backend OrderResponse to UI Ticket
   const mapOrderToTicket = useCallback((o) => {
@@ -81,10 +106,11 @@ export function KdsProvider({ children }) {
         desc: '',
         price: i.unitPrice ? i.unitPrice / 100 : 0,
         image: i.imageUrl || i.image || i.menuImageUrl || null,
-        itemCustomization: i.itemNote || null
+        itemNote: i.itemNote || null
       }))
     }
   }, [])
+
 
   const fetchUnreadCompletedPickups = useCallback(async () => {
     try {
@@ -221,14 +247,37 @@ export function KdsProvider({ children }) {
       }
     }
 
+    const handleMenuUpdated = (e) => {
+      const menuData = e.detail
+      if (!menuData) return
+
+      setUnavailableMenuItems((prev) => {
+        if (menuData.deleted || menuData.isAvailable === true) {
+          return prev.filter((m) => m.id !== menuData.id && m.name !== menuData.name)
+        }
+        if (menuData.isAvailable === false) {
+          setIsAlertBannerDismissed(false)
+          const exists = prev.some((m) => m.id === menuData.id)
+          if (exists) {
+            return prev.map((m) => (m.id === menuData.id ? { ...m, ...menuData } : m))
+          }
+          return [...prev, menuData]
+        }
+        return prev
+      })
+    }
+
     window.addEventListener('kf:order-created', handleOrderCreated)
     window.addEventListener('kf:order-updated', handleOrderUpdated)
+    window.addEventListener('kf:menu-updated', handleMenuUpdated)
 
     return () => {
       window.removeEventListener('kf:order-created', handleOrderCreated)
       window.removeEventListener('kf:order-updated', handleOrderUpdated)
+      window.removeEventListener('kf:menu-updated', handleMenuUpdated)
     }
   }, [activeFilter, searchOrderNumber, menuFilter, mapOrderToTicket])
+
 
 
 
@@ -272,7 +321,7 @@ export function KdsProvider({ children }) {
       )
     } catch (err) {
       console.error('Failed to mark complete on server:', err)
-      addToast('Failed to update order status on server', 'error')
+      addToast(err?.message || 'Failed to update order status on server', 'error')
     } finally {
       setProcessingOrderIds((prev) => {
         const next = new Set(prev)
@@ -292,7 +341,7 @@ export function KdsProvider({ children }) {
       setOrders((prev) => prev.filter((o) => o.id !== orderId && o.rawId !== orderId))
     } catch (err) {
       console.error('Failed to cancel order on server:', err)
-      addToast('Failed to cancel order', 'error')
+      addToast(err?.message || 'Failed to cancel order', 'error')
     } finally {
       setProcessingOrderIds((prev) => {
         const next = new Set(prev)
@@ -301,6 +350,7 @@ export function KdsProvider({ children }) {
       })
     }
   }, [processingOrderIds, addToast])
+
 
   // Cashier Notification Actions
   const markHandedOver = useCallback((orderId) => {
@@ -334,6 +384,9 @@ export function KdsProvider({ children }) {
     menuFilter,
     setMenuFilter,
     categories,
+    unavailableMenuItems,
+    isAlertBannerDismissed,
+    setIsAlertBannerDismissed,
     page,
     hasMore,
     totalCount,
@@ -350,3 +403,4 @@ export function KdsProvider({ children }) {
     </KdsContext.Provider>
   )
 }
+

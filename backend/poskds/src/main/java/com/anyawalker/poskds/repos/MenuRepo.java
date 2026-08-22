@@ -37,7 +37,14 @@ public interface MenuRepo extends JpaRepository<@NonNull MenuEntity,@NonNull Int
         Pageable pageable
     );
 
+    @Query(
+        value = "SELECT m.name FROM menus m WHERE m.id IN (:ids)",
+        nativeQuery = true
+    )
+    List<String> findMenuNamesByIds(@Param("ids") List<Integer> ids);
 }
+
+
 
 
 

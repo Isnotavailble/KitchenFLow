@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Plus, ImageOff, ShoppingBag, Utensils, X, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { Plus, ImageOff, ShoppingBag, Utensils, X, Loader2, AlertTriangle } from 'lucide-react'
 import { useKds } from '../hooks/useKds'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useElapsedTime } from '../hooks/useElapsedTime'
@@ -29,7 +29,7 @@ function ItemThumbnail({ image, name }) {
 }
 
 export default function TicketCard({ ticket }) {
-  const { markComplete, cancelOrder, processingOrderIds } = useKds()
+  const { markComplete, cancelOrder, processingOrderIds, unavailableMenuItems } = useKds()
   const { user } = useAuth()
   const elapsed = useElapsedTime(ticket.created_at)
   const isCompleted = ticket.status === 'Completed'
@@ -37,6 +37,12 @@ export default function TicketCard({ ticket }) {
   const isTakeaway = ticket.orderType === 'takeaway'
   const isAdmin = user?.role === 'ROLE_ADMIN'
   const isProcessing = processingOrderIds?.has(ticket.id) || processingOrderIds?.has(ticket.rawId) || processingOrderIds?.has(ticket.orderNumberInt)
+
+  const disabledItemsInTicket = (ticket.items || []).filter((item) =>
+    (unavailableMenuItems || []).some(
+      (u) => u.name?.toLowerCase() === item.name?.toLowerCase() || u.id === item.menuId
+    )
+  )
 
   return (
     <div className={`bg-white rounded-2xl border ${isCancelled ? 'border-rose-200 bg-rose-50/10' : isCompleted ? 'border-zinc-200/60' : 'border-zinc-200/80'} shadow-xs p-4 sm:p-5 flex flex-col h-[440px] select-none hover:shadow-sm transition-shadow min-w-[280px]`}>
@@ -82,34 +88,59 @@ export default function TicketCard({ ticket }) {
             <WorkloadBadge tier={ticket.workloadTier} />
           )}
         </div>
+
+        {/* In-Card Warning for 86'd / Disabled Items */}
+        {!isCompleted && !isCancelled && disabledItemsInTicket.length > 0 && (
+          <div className="mt-2.5 px-2.5 py-1 rounded-xl bg-amber-50 border border-amber-200/90 flex items-center space-x-1.5 text-amber-800 text-[11px] font-bold">
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            <span>Unavailable order contain!</span>
+          </div>
+        )}
       </div>
 
       {/* 2. Scrollable Order Items List */}
       <div className="flex-1 min-h-0 py-3.5 pr-1.5 space-y-3.5 overflow-y-auto">
-        {ticket.items.map((item, idx) => (
-          <div key={idx} className="flex items-start space-x-3 text-xs">
-            {/* Thumbnail Image or Empty State Icon Placeholder */}
-            <ItemThumbnail image={item.image} name={item.name} />
+        {ticket.items.map((item, idx) => {
+          const isItemUnavailable =
+            !isCompleted &&
+            !isCancelled &&
+            (unavailableMenuItems || []).some(
+              (u) =>
+                u.name?.toLowerCase() === item.name?.toLowerCase() ||
+                u.id === item.menuId
+            )
 
-            {/* Title, Description & Customization Note */}
-            <div className="flex-1 min-w-0 pr-1">
-              <span className="font-bold text-zinc-900 text-xs sm:text-sm leading-snug block">
-                {item.qty}x {item.name}
-              </span>
-              {item.desc && (
-                <p className="text-[11px] sm:text-xs text-zinc-500 leading-tight mt-0.5 font-normal">
-                  {item.desc}
-                </p>
-              )}
-              {item.itemCustomization && (
-                <div className="mt-1 inline-block bg-orange-50 border border-orange-200/80 text-amber-900 px-2 py-0.5 rounded text-[11px] font-medium">
-                  <span className="font-bold text-[#FF5C39]">Note:</span> {item.itemCustomization}
+          return (
+            <div key={idx} className="flex items-start space-x-3 text-xs">
+              {/* Thumbnail Image or Empty State Icon Placeholder */}
+              <ItemThumbnail image={item.image} name={item.name} />
+
+              {/* Title & Customization Note */}
+              <div className="flex-1 min-w-0 pr-1">
+                <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
+                  <span className="font-bold text-zinc-900 text-xs sm:text-sm leading-snug">
+                    {item.qty}x {item.name}
+                  </span>
+                  {isItemUnavailable && (
+                    <span className="px-1.5 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-600 text-[10px] font-bold shrink-0">
+                      Unavailable
+                    </span>
+                  )}
                 </div>
-              )}
+                {item.itemNote && (
+                  <div className="mt-1 inline-block bg-white border border-zinc-200/90 text-zinc-800 px-2 py-0.5 rounded-md text-[11px] font-medium shadow-2xs">
+                    <span className="font-bold text-[#FF5C39]">Note:</span> {item.itemNote}
+                  </div>
+                )}
+
+              </div>
+
+
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
+
 
       {/* 3. Fixed Card Footer */}
       <div className="pt-2 shrink-0">

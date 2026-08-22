@@ -20,6 +20,14 @@ public interface OrderRepo extends JpaRepository<@NonNull OrderEntity, @NonNull 
 
     //SELECT * FROM orders BETWEEN ? AND ? ORDER BY order_number DESC LIMIT 1
     Optional<OrderEntity> findTopByCreatedAtBetweenOrderByOrderNumberDesc(@NonNull LocalDateTime startTime, @NonNull LocalDateTime endTime);
+    @Query("""
+        SELECT o FROM OrderEntity o
+        LEFT JOIN FETCH o.orderItemEntityList oi
+        LEFT JOIN FETCH oi.menuEntity m
+        LEFT JOIN FETCH m.categoryEntity c
+        WHERE o.id = :id
+    """)
+    Optional<OrderEntity> findByIdWithJoin(@Param("id") Integer id);
 
     @Query(
         value = """
