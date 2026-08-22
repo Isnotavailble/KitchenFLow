@@ -1,16 +1,18 @@
-import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from '../features/auth'
 import PosPage from '../features/pos'
 import KdsPage from '../features/kds'
 import MenuPage from '../features/menu'
-import DashboardPage from '../features/admin/DashboardPage'
-import AccountsPage from '../features/admin/AccountsPage'
-import ReportsPage from '../features/admin/ReportsPage'
-import AdminLayout from '../layouts/AdminLayout'
+import {
+  AdminLayout,
+  DashboardPage,
+  AccountsPage,
+  ReportsPage
+} from '../features/admin'
 import NotFoundPage from '../components/NotFoundPage'
 import ProtectedRoute from './ProtectedRoute'
 import { useAuth } from '../features/auth/hooks/useAuth'
+
 
 function IndexRedirect() {
   const { isAuthenticated, user } = useAuth()

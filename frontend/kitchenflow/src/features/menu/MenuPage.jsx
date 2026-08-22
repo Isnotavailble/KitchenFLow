@@ -4,7 +4,9 @@ import { menuApi } from './api/menuApi'
 import { categoryApi } from '../category/api/categoryApi'
 import { imageApi } from './api/imageApi'
 import { useToast } from '../../hooks/useToast'
-import AdminPageHeader from '../../components/AdminPageHeader'
+import { AdminPageHeader } from '../admin'
+
+
 import MenuToolbar from './components/MenuToolbar'
 import MenuCardView from './components/MenuCardView'
 import MenuTableView from './components/MenuTableView'

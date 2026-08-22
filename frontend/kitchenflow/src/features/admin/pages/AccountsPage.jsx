@@ -1,6 +1,5 @@
-import React from 'react'
-import { Users, UserPlus } from 'lucide-react'
-import AdminPageHeader from '../../components/AdminPageHeader'
+﻿import { Users, UserPlus } from 'lucide-react'
+import AdminPageHeader from '../components/AdminPageHeader'
 
 export default function AccountsPage() {
   return (
