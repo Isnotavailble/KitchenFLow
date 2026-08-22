@@ -69,7 +69,21 @@ public interface OrderRepo extends JpaRepository<@NonNull OrderEntity, @NonNull 
         nativeQuery = true
     )
     List<OrderEntity> findTodayCompletedOrders(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
+
+    long countByStatus(String status);
+
+    @Query("""
+        SELECT o FROM OrderEntity o
+        LEFT JOIN FETCH o.userEntity u
+        WHERE o.status = 'completed' AND o.createdAt >= :startTime AND o.createdAt < :endTime
+        ORDER BY o.createdAt ASC
+    """)
+    List<OrderEntity> findCompletedOrdersForSales(
+        @Param("startTime") LocalDateTime startTime,
+        @Param("endTime") LocalDateTime endTime
+    );
 }
+
 
 
 

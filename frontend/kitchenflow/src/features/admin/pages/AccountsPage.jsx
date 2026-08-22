@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Users,
   UserPlus,
-  Search,
   KeyRound,
   Edit2,
   PowerOff,
@@ -29,7 +28,6 @@ export default function AccountsPage() {
 
   const [accounts, setAccounts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('ALL') // 'ALL' | 'ROLE_ADMIN' | 'ROLE_CASHIER' | 'ROLE_CHEF' | 'INACTIVE'
 
   // Modals state
@@ -72,22 +70,11 @@ export default function AccountsPage() {
 
   // Filtered Accounts
   const filteredAccounts = useMemo(() => {
-    return accounts.filter((a) => {
-      // Search match
-      const query = searchQuery.trim().toLowerCase()
-      const matchesSearch =
-        !query ||
-        a.name?.toLowerCase().includes(query) ||
-        a.mobileNumber?.includes(query)
+    if (roleFilter === 'INACTIVE') return accounts.filter((a) => a.isDeleted)
+    if (roleFilter !== 'ALL') return accounts.filter((a) => a.role === roleFilter && !a.isDeleted)
+    return accounts
+  }, [accounts, roleFilter])
 
-      if (!matchesSearch) return false
-
-      // Role filter match
-      if (roleFilter === 'INACTIVE') return a.isDeleted
-      if (roleFilter !== 'ALL') return a.role === roleFilter && !a.isDeleted
-      return true
-    })
-  }, [accounts, searchQuery, roleFilter])
 
   // Save Account (Create or Update)
   const handleSaveAccount = async (payload) => {
@@ -274,44 +261,30 @@ export default function AccountsPage() {
           </div>
         </div>
 
-        {/* Toolbar: Search + Role Pills (Seamless no-box row) */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-          {/* Role Filter Tabs */}
-          <div className="flex items-center space-x-1.5 overflow-x-auto w-full sm:w-auto no-scrollbar">
-            {[
-              { label: 'All Staff', value: 'ALL' },
-              { label: 'Admins', value: 'ROLE_ADMIN' },
-              { label: 'Cashiers', value: 'ROLE_CASHIER' },
-              { label: 'Chefs', value: 'ROLE_CHEF' },
-              { label: 'Inactive', value: 'INACTIVE' }
-            ].map((tab) => (
-              <button
-                key={tab.value}
-                type="button"
-                onClick={() => setRoleFilter(tab.value)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
-                  roleFilter === tab.value
-                    ? 'bg-[#FF5C39] text-white shadow-xs'
-                    : 'bg-white hover:bg-zinc-50 text-zinc-700 border border-zinc-200/80 shadow-2xs'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Search Input */}
-          <div className="relative w-full sm:w-64">
-            <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name or mobile..."
-              className="w-full pl-8 pr-3 py-1.5 bg-white border border-zinc-200/80 rounded-xl text-xs font-medium text-zinc-800 shadow-2xs focus:border-[#FF5C39] outline-none transition"
-            />
-          </div>
+        {/* Role Filter Tabs (Seamless no-box row) */}
+        <div className="flex items-center space-x-1.5 overflow-x-auto w-full no-scrollbar shrink-0">
+          {[
+            { label: 'All Staff', value: 'ALL' },
+            { label: 'Admins', value: 'ROLE_ADMIN' },
+            { label: 'Cashiers', value: 'ROLE_CASHIER' },
+            { label: 'Chefs', value: 'ROLE_CHEF' },
+            { label: 'Inactive', value: 'INACTIVE' }
+          ].map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => setRoleFilter(tab.value)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                roleFilter === tab.value
+                  ? 'bg-[#FF5C39] text-white shadow-xs'
+                  : 'bg-white hover:bg-zinc-50 text-zinc-700 border border-zinc-200/80 shadow-2xs'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
+
 
         {/* Staff Table Container (Fixed Height + Internal Scroll) */}
         <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-xs flex-1 min-h-0 flex flex-col overflow-hidden">
