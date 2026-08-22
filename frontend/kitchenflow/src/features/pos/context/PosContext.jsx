@@ -3,7 +3,9 @@ import { PosContext } from './posContextDef'
 import { menuApi } from '../../menu/api/menuApi'
 import { categoryApi } from '../../category/api/categoryApi'
 import { orderApi } from '../../order/api/orderApi'
+import { preOrderApi } from '../../preorder/api/preOrderApi'
 import { useToast } from '../../../hooks/useToast'
+
 
 
 const READ_NOTIFICATIONS_KEY = 'kf_read_notification_ids'
@@ -239,8 +241,11 @@ export function PosProvider({ children }) {
     setCart((prev) => prev.filter((i) => i.id !== itemId))
   }
 
+  const [activePreOrderCode, setActivePreOrderCode] = useState(null)
+
   const clearCart = () => {
     setCart([])
+    setActivePreOrderCode(null)
   }
 
   // Financial computations
@@ -304,8 +309,17 @@ export function PosProvider({ children }) {
 
       setRecentOrders((prev) => [newOrder, ...prev.slice(0, 19)])
       setActiveReceipt(newOrder)
-      clearCart()
 
+      // Evict Redis Pre-Order Token if this was loaded from pre-order
+      if (activePreOrderCode) {
+        try {
+          await preOrderApi.deletePreOrder(activePreOrderCode)
+        } catch (e) {
+          console.warn('Failed to evict preorder draft from Redis:', e)
+        }
+      }
+
+      clearCart()
       return newOrder
     } catch (err) {
       console.error('Order creation error:', err)
@@ -319,20 +333,34 @@ export function PosProvider({ children }) {
     if (!code || code.trim().length === 0) return { success: false, error: 'Enter a valid 6-digit code' }
 
     try {
-      const res = await orderApi.getPreOrder(code.trim())
+      const cleanCode = code.trim()
+      const res = await preOrderApi.getPreOrderByCode(cleanCode)
       if (res && Array.isArray(res.items) && res.items.length > 0) {
-        setCart(res.items.map((item) => ({ ...item, qty: item.qty || 1, note: item.note || '' })))
+        setCart(
+          res.items.map((item) => ({
+            id: item.menuId,
+            name: item.menuName,
+            price: item.price,
+            image: item.imageUrl,
+            qty: item.quantity,
+            note: item.itemNote || ''
+          }))
+        )
+        setActivePreOrderCode(cleanCode)
         setIsPreOrderModalOpen(false)
-        addToast('Pre-order cart loaded successfully', 'success')
+        addToast(`Pre-order #${cleanCode} loaded successfully`, 'success')
         return { success: true }
       }
     } catch (err) {
       console.error('Pre-order lookup error:', err)
-      addToast('Pre-order code expired or invalid', 'warning')
+      const msg = err?.response?.data?.error || err?.message || 'Pre-order code expired or invalid'
+      addToast(msg, 'warning')
+      return { success: false, error: msg }
     }
 
     return { success: false, error: 'Pre-order not found' }
   }
+
 
   const value = {
     categories,

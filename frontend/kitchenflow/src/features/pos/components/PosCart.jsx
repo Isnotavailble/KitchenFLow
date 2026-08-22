@@ -268,39 +268,58 @@ export default function PosCart() {
 
       {/* 3. Footer with Left-Aligned Financials & Dedicated Separated Button */}
       <div className="p-3.5 border-t border-zinc-100 bg-zinc-50/50 space-y-3 shrink-0">
-        {/* Row 1: Payment Method & Cash Received (Side-by-side) */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center bg-zinc-200/60 p-0.5 rounded-lg border border-zinc-200/50">
-            <button
-              type="button"
-              onClick={() => setPaymentMethod('cash')}
-              className={`px-3 py-1 rounded-md text-[11px] font-bold flex items-center space-x-1.5 transition-colors duration-150 cursor-pointer ${
-                isCash
-                  ? 'bg-white text-[#FF5C39] shadow-2xs border border-orange-200/40'
-                  : 'text-zinc-600 hover:text-zinc-900 border border-transparent'
-              }`}
-            >
-              <Banknote className="w-3.5 h-3.5" />
-              <span>Cash</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPaymentMethod('card')}
-              className={`px-3 py-1 rounded-md text-[11px] font-bold flex items-center space-x-1.5 transition-colors duration-150 cursor-pointer ${
-                !isCash
-                  ? 'bg-white text-[#FF5C39] shadow-2xs border border-orange-200/40'
-                  : 'text-zinc-600 hover:text-zinc-900 border border-transparent'
-              }`}
-            >
-              <CreditCard className="w-3.5 h-3.5" />
-              <span>Card / Online</span>
-            </button>
+        {/* Row 1: Payment Method Switcher */}
+        <div className="flex items-center bg-zinc-200/60 p-0.5 rounded-lg border border-zinc-200/50 w-fit">
+          <button
+            type="button"
+            onClick={() => setPaymentMethod('cash')}
+            className={`px-3 py-1 rounded-md text-[11px] font-bold flex items-center space-x-1.5 transition-colors duration-150 cursor-pointer ${
+              isCash
+                ? 'bg-white text-[#FF5C39] shadow-2xs border border-orange-200/40'
+                : 'text-zinc-600 hover:text-zinc-900 border border-transparent'
+            }`}
+          >
+            <Banknote className="w-3.5 h-3.5" />
+            <span>Cash</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setPaymentMethod('card')}
+            className={`px-3 py-1 rounded-md text-[11px] font-bold flex items-center space-x-1.5 transition-colors duration-150 cursor-pointer ${
+              !isCash
+                ? 'bg-white text-[#FF5C39] shadow-2xs border border-orange-200/40'
+                : 'text-zinc-600 hover:text-zinc-900 border border-transparent'
+            }`}
+          >
+            <CreditCard className="w-3.5 h-3.5" />
+            <span>Card</span>
+          </button>
+        </div>
+
+        {/* Validation Warning */}
+        {isUnderpaid && (
+          <div className="flex items-center space-x-1 p-1 bg-rose-50 border border-rose-200 rounded text-[11px] text-rose-600 font-semibold">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            <span>Received amount is less than total ({formatMMK(total)})</span>
+          </div>
+        )}
+
+        {/* Row 2: Clean Financial Breakdown */}
+        <div className="space-y-1.5 text-xs">
+          <div className="flex justify-between text-zinc-500">
+            <span>Subtotal</span>
+            <span>{formatMMK(subtotal)}</span>
+          </div>
+          <div className="flex justify-between text-zinc-500">
+            <span>Tax (5%)</span>
+            <span>{formatMMK(taxAmount)}</span>
           </div>
 
+          {/* Cash Received Row matching typography */}
           {isCash && cart.length > 0 && (
-            <div className="flex items-center space-x-1">
-              <span className="text-xs font-semibold text-zinc-600">Cash:</span>
-              <div className="flex items-center">
+            <div className="flex justify-between items-center text-zinc-500">
+              <span>Cash Received</span>
+              <div className="flex items-center space-x-1">
                 <input
                   type="number"
                   step="100"
@@ -314,30 +333,11 @@ export default function PosCart() {
                       : 'border-zinc-200 focus:border-[#FF5C39]'
                   }`}
                 />
-                <span className="text-[10px] text-zinc-400 font-bold ml-1">MMK</span>
+                <span className="text-zinc-500 font-bold text-[11px]">MMK</span>
               </div>
             </div>
           )}
-        </div>
 
-        {/* Validation Warning */}
-        {isUnderpaid && (
-          <div className="flex items-center space-x-1 p-1 bg-rose-50 border border-rose-200 rounded text-[11px] text-rose-600 font-semibold">
-            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-            <span>Received amount is less than total ({formatMMK(total)})</span>
-          </div>
-        )}
-
-        {/* Row 2: Clean Left-Aligned Financial Breakdown */}
-        <div className="space-y-1 text-xs">
-          <div className="flex justify-between text-zinc-500">
-            <span>Subtotal</span>
-            <span>{formatMMK(subtotal)}</span>
-          </div>
-          <div className="flex justify-between text-zinc-500">
-            <span>Tax (5%)</span>
-            <span>{formatMMK(taxAmount)}</span>
-          </div>
           {isCash && parseFloat(changeDue) > 0 && (
             <div className="flex justify-between text-emerald-600 font-semibold">
               <span>Change Due</span>
@@ -350,8 +350,8 @@ export default function PosCart() {
           </div>
         </div>
 
-
         {/* Row 3: Dedicated Separate Full-Width Send to Kitchen Button */}
+
         <button
           type="button"
           disabled={cart.length === 0 || isUnderpaid || isInvalidNumber}

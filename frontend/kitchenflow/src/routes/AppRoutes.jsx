@@ -8,6 +8,7 @@ import {
   DashboardPage,
   AccountsPage
 } from '../features/admin'
+import CustomerPreOrderPage from '../features/preorder/pages/CustomerPreOrderPage'
 
 import NotFoundPage from '../components/NotFoundPage'
 import ProtectedRoute from './ProtectedRoute'
@@ -38,8 +39,10 @@ export default function AppRoutes() {
 
   return (
     <Routes>
-      {/* Public Guest Route */}
+      {/* Public Guest Routes */}
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/pre-order" element={<CustomerPreOrderPage />} />
+
 
       {/* When logged in as Owner (ROLE_ADMIN): ALL views preserve the persistent Admin Sidebar */}
       {isAdmin ? (

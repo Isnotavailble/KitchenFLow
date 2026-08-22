@@ -87,9 +87,10 @@ export default function ReceiptModal() {
           <div className="flex justify-between">
             <span>Payment Method:</span>
             <span className="font-bold capitalize text-zinc-800">
-              {activeReceipt.financials.paymentMethod === 'cash' ? 'Cash' : 'Card / Online'}
+              {activeReceipt.financials.paymentMethod === 'cash' ? 'Cash' : 'Card'}
             </span>
           </div>
+
           <div className="flex justify-between text-zinc-500">
             <span>Subtotal:</span>
             <span className="font-mono text-zinc-700">{formatMMK(activeReceipt.financials.subtotal)}</span>

@@ -9,14 +9,15 @@ export default function PreOrderLookupModal() {
 
   if (!isPreOrderModalOpen) return null
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    const result = loadPreOrder(code)
+    const result = await loadPreOrder(code)
     if (!result.success) {
       setError(result.error || 'Failed to find pre-order code.')
     }
   }
+
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 select-none">
