@@ -22,7 +22,8 @@ export default function KdsFilterRow() {
     setLocalInput(searchOrderNumber)
   }
 
-  const filters = ['Active', 'Waiting', 'Priority', 'Complete']
+  const filters = ['Active', 'Waiting', 'Priority', 'Complete', 'Cancelled']
+
 
   // Strict integer validation for input typing
   const handleInputChange = (e) => {

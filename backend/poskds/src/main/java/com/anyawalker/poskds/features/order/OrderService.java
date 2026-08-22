@@ -69,6 +69,8 @@ public class OrderService {
             priorityCutoff = LocalDateTime.now().minusMinutes(10);
         } else if (status.equalsIgnoreCase("Complete") || status.equalsIgnoreCase("Completed")) {
             dbStatus = OrderStatus.COMPLETED.getValue();
+        } else if (status.equalsIgnoreCase("Cancelled") || status.equalsIgnoreCase("Canceled")) {
+            dbStatus = OrderStatus.CANCELLED.getValue();
         } else {
             dbStatus = status.trim().toLowerCase();
         }
@@ -78,11 +80,12 @@ public class OrderService {
                 : null;
 
         Sort sort;
-        if (status != null && (status.equalsIgnoreCase("Complete") || status.equalsIgnoreCase("Completed"))) {
+        if (status != null && (status.equalsIgnoreCase("Complete") || status.equalsIgnoreCase("Completed") || status.equalsIgnoreCase("Cancelled") || status.equalsIgnoreCase("Canceled"))) {
             sort = Sort.by(Sort.Direction.DESC, "updatedAt").and(Sort.by(Sort.Direction.DESC, "createdAt"));
         } else {
             sort = Sort.by(Sort.Direction.ASC, "createdAt");
         }
+
 
         int pageSize = size > 0 ? size : 20;
         int pageIndex = Math.max(0, page);

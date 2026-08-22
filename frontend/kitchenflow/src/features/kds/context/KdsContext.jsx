@@ -199,8 +199,13 @@ export function KdsProvider({ children }) {
       if (!rawOrder) return
       const ticket = mapOrderToTicket(rawOrder)
 
-      // Do NOT display new waiting orders if currently viewing the Complete tab
-      if (activeFilter === 'Complete' || activeFilter === 'Completed') {
+      // Do NOT display new waiting orders if currently viewing Complete or Cancelled tab
+      if (
+        activeFilter === 'Complete' ||
+        activeFilter === 'Completed' ||
+        activeFilter === 'Cancelled' ||
+        activeFilter === 'Canceled'
+      ) {
         return
       }
 
@@ -238,6 +243,27 @@ export function KdsProvider({ children }) {
         } else {
           setOrders((prev) => prev.filter((o) => o.id !== ticket.id))
         }
+      } else if (activeFilter === 'Cancelled' || activeFilter === 'Canceled') {
+        if (ticket.status === 'Cancelled') {
+          // Check if search order number matches
+          if (searchOrderNumber && String(ticket.orderNumberInt) !== searchOrderNumber && String(ticket.id) !== searchOrderNumber) {
+            return
+          }
+          // Check if category filter matches
+          if (menuFilter && menuFilter !== 'ALL') {
+            const matchesCategory = ticket.items.some((item) => item.category === menuFilter)
+            if (!matchesCategory) return
+          }
+
+          setOrders((prev) => {
+            if (prev.some((o) => o.id === ticket.id)) {
+              return prev.map((o) => (o.id === ticket.id ? ticket : o))
+            }
+            return [ticket, ...prev]
+          })
+        } else {
+          setOrders((prev) => prev.filter((o) => o.id !== ticket.id))
+        }
       } else {
         setOrders((prev) =>
           prev
@@ -246,6 +272,7 @@ export function KdsProvider({ children }) {
         )
       }
     }
+
 
     const handleMenuUpdated = (e) => {
       const menuData = e.detail

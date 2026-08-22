@@ -50,7 +50,7 @@ export default function TicketCard({ ticket }) {
 
   return (
     <>
-      <div className={`bg-white rounded-2xl border ${isCancelled ? 'border-rose-200 bg-rose-50/10' : isCompleted ? 'border-zinc-200/60' : 'border-zinc-200/80'} shadow-xs p-4 sm:p-5 flex flex-col h-[440px] select-none hover:shadow-sm transition-shadow min-w-[280px]`}>
+      <div className={`bg-white rounded-2xl border ${isCompleted || isCancelled ? 'border-zinc-200/60' : 'border-zinc-200/80'} shadow-xs p-4 sm:p-5 flex flex-col h-[440px] select-none hover:shadow-sm transition-shadow min-w-[280px]`}>
         {/* 1. Fixed Card Header */}
         <div className="pb-3 border-b border-zinc-100 shrink-0">
           {/* Top Row: Order Number label & number on left, Subtle relative time on right */}
@@ -65,7 +65,7 @@ export default function TicketCard({ ticket }) {
             </div>
 
             <div className="text-right pt-0.5">
-              <span className={`text-[11px] font-medium block transition-colors duration-300 ${isCompleted ? 'text-zinc-400' : (elapsed?.colorClass || 'text-zinc-400')}`}>
+              <span className={`text-[11px] font-medium block transition-colors duration-300 ${isCompleted || isCancelled ? 'text-zinc-400' : (elapsed?.colorClass || 'text-zinc-400')}`}>
                 {elapsed?.formatted || 'Just now'}
               </span>
             </div>
@@ -148,9 +148,11 @@ export default function TicketCard({ ticket }) {
         <div className="pt-2 shrink-0">
           {isCancelled ? (
             <div className="py-2.5 text-center text-xs font-semibold text-rose-500 bg-rose-50 rounded-xl border border-rose-100">
-              Order Cancelled
+              Cancelled Order
             </div>
           ) : isCompleted ? (
+
+
             <div className="py-2.5 text-center text-xs font-semibold text-zinc-400 bg-zinc-50 rounded-xl border border-zinc-100">
               Completed Order
             </div>
