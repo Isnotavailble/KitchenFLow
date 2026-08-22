@@ -120,7 +120,7 @@ export default function MenuTableView({
                       type="button"
                       onClick={() => onToggleAvailability(item)}
                       disabled={isToggling || isDeleting}
-                      className={`w-[130px] h-8 mx-auto rounded-xl text-xs font-bold transition-all duration-150 active:scale-[0.96] flex items-center justify-center space-x-1.5 shadow-xs ${
+                      className={`w-[110px] h-8 mx-auto rounded-xl text-xs font-bold transition-all duration-150 active:scale-[0.96] flex items-center justify-center space-x-1.5 shadow-xs whitespace-nowrap ${
                         isToggling || isDeleting ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
                       } ${
                         item.isAvailable
@@ -130,8 +130,9 @@ export default function MenuTableView({
                       title={item.isAvailable ? 'Click to make unavailable' : 'Click to make available'}
                     >
                       {isToggling && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
-                      <span className="truncate">{item.isAvailable ? 'Set Unavailable' : 'Set Available'}</span>
+                      <span className="truncate">{item.isAvailable ? 'Disable' : 'Enable'}</span>
                     </button>
+
                   </td>
 
                   {/* Fixed Actions */}

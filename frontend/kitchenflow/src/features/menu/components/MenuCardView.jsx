@@ -120,12 +120,12 @@ export default function MenuCardView({
                 </span>
 
                 <div className="flex items-center space-x-1.5">
-                  {/* Full-Sized Action Button with Proper Label */}
+                  {/* Compact Action Button with whitespace-nowrap */}
                   <button
                     type="button"
                     onClick={() => onToggleAvailability(item)}
                     disabled={isToggling || isDeleting}
-                    className={`h-8 px-3 rounded-xl text-xs font-bold transition-all duration-150 active:scale-[0.96] flex items-center justify-center space-x-1.5 shadow-xs ${
+                    className={`h-8 px-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-[0.96] flex items-center justify-center space-x-1 shadow-xs whitespace-nowrap shrink-0 ${
                       isToggling || isDeleting ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
                     } ${
                       item.isAvailable
@@ -135,8 +135,9 @@ export default function MenuCardView({
                     title={item.isAvailable ? 'Click to make unavailable' : 'Click to make available'}
                   >
                     {isToggling && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
-                    <span>{item.isAvailable ? 'Set Unavailable' : 'Set Available'}</span>
+                    <span>{item.isAvailable ? 'Disable' : 'Enable'}</span>
                   </button>
+
 
                   {/* Edit Button */}
                   <button
