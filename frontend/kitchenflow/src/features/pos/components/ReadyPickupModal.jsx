@@ -3,17 +3,22 @@ import { usePos } from '../hooks/usePos'
 import { useElapsedTime } from '../../kds/hooks/useElapsedTime'
 
 function NotificationItem({ order, onMarkAsRead }) {
-  const elapsed = useElapsedTime(order.completed_at || order.created_at)
+  const isCancelled = order.status === 'Cancelled'
+  const elapsed = useElapsedTime(order.completed_at || order.cancelled_at || order.created_at)
   const isTakeaway = order.orderType === 'takeaway'
 
   return (
-    <div className="p-3.5 hover:bg-zinc-50/80 transition flex items-center justify-between gap-3 select-none border-b border-zinc-100 last:border-b-0">
+    <div className={`p-3.5 hover:bg-zinc-50/80 transition flex items-center justify-between gap-3 select-none border-b border-zinc-100 last:border-b-0 ${isCancelled ? 'bg-rose-50/25' : ''}`}>
       <div className="flex items-start min-w-0 flex-1">
         <div className="min-w-0 flex-1">
           <p className="text-xs text-zinc-800 leading-snug font-medium">
             Order number <strong className="text-zinc-900 font-bold font-sans">{order.order_number}</strong>{' '}
             <span className="text-zinc-500">({isTakeaway ? 'Takeaway' : 'Dine-In'})</span>{' '}
-            has been completed.
+            {isCancelled ? (
+              <span className="text-rose-600 font-bold">has been cancelled by owner.</span>
+            ) : (
+              <span>has been completed.</span>
+            )}
           </p>
           <span className="text-[11px] text-zinc-400 font-normal block mt-0.5">
             {elapsed.formatted}
@@ -32,6 +37,7 @@ function NotificationItem({ order, onMarkAsRead }) {
     </div>
   )
 }
+
 
 export default function ReadyPickupModal({ isOpen, onClose }) {
   const { completedPickupQueue, markHandedOver, markAllHandedOver } = usePos() || {}

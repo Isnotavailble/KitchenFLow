@@ -98,26 +98,25 @@ export function PosProvider({ children }) {
     setCompletedPickupQueue([])
   }, [completedPickupQueue])
 
-  // Listen to Global Real-Time SSE Order Events for Cashier Pickup Notifications
+  // Listen to Global Real-Time SSE Order Events for Cashier Pickup & Cancel Notifications
   useEffect(() => {
     const handleOrderUpdated = (e) => {
       const rawOrder = e.detail
       if (!rawOrder) return
       const ticket = mapOrderToTicket(rawOrder)
 
-      if (ticket.status === 'Completed') {
+      if (ticket.status === 'Completed' || ticket.status === 'Cancelled') {
         const readSet = getReadNotificationIds()
         if (!readSet.has(ticket.id) && !readSet.has(String(ticket.id))) {
           setCompletedPickupQueue((prev) => [ticket, ...prev.filter((o) => o.id !== ticket.id)])
         }
-      } else if (ticket.status === 'Cancelled') {
-        setCompletedPickupQueue((prev) => prev.filter((o) => o.id !== ticket.id))
       }
     }
 
     window.addEventListener('kf:order-updated', handleOrderUpdated)
     return () => window.removeEventListener('kf:order-updated', handleOrderUpdated)
   }, [])
+
 
 
   const [categories, setCategories] = useState(['All'])

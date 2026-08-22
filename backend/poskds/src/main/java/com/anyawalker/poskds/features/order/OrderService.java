@@ -297,18 +297,21 @@ public class OrderService {
         String currentStatus = targetOrderEntity.getStatus();
         List<OrderItemEntity> orderItemEntityList = targetOrderEntity.getOrderItemEntityList();
 
-        //get the unavailable order item if the list is not null which mean we got it!
-        List<Integer> menuIds = orderItemEntityList.stream()
-                .filter(orderItemEntity -> !orderItemEntity.getMenuEntity().isAvailable())
-                .map(orderItemEntity -> orderItemEntity.getMenuEntity().getId()).toList();
+        if (nextStatus.equals(OrderStatus.COMPLETED.getValue())) {
+            //get the unavailable order item if the list is not null which mean we got it!
+            List<Integer> menuIds = orderItemEntityList.stream()
+                    .filter(orderItemEntity -> !orderItemEntity.getMenuEntity().isAvailable())
+                    .map(orderItemEntity -> orderItemEntity.getMenuEntity().getId()).toList();
 
-        if (!menuIds.isEmpty()){
-            List<String> menuNames = menuRepo.findMenuNamesByIds(menuIds);
-            String cleanName = menuNames.isEmpty() ? "unknow items" : menuNames.toString()
-                    .replace("[","").replace("]","").trim();
+            if (!menuIds.isEmpty()){
+                List<String> menuNames = menuRepo.findMenuNamesByIds(menuIds);
+                String cleanName = menuNames.isEmpty() ? "unknown items" : menuNames.toString()
+                        .replace("[","").replace("]","").trim();
 
-            throw new OrderFailureException("Order Items " +  cleanName + " are unavailable.");
+                throw new OrderFailureException("Order Items " +  cleanName + " are unavailable.");
+            }
         }
+
 
         //check if the incoming status is the same
         if (nextStatus.equals(currentStatus))
