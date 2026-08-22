@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Edit2, Trash2, ImageOff, UtensilsCrossed, Loader2 } from 'lucide-react'
 import WorkloadBadge from '../../kds/components/WorkloadBadge'
+import { formatMMK } from '../../../utils/formatPrice'
+
 
 function TableThumbnail({ item }) {
   const [hasError, setHasError] = useState(false)
@@ -111,28 +113,38 @@ export default function MenuTableView({
 
                   {/* Price */}
                   <td className="py-3.5 px-4 font-black font-sans text-zinc-900">
-                    ${item.price.toFixed(2)}
+                    {formatMMK(item.price)}
                   </td>
+
 
                   {/* Fixed-Width 1-Click Availability Toggle */}
                   <td className="py-3.5 px-4 text-center">
                     <button
                       type="button"
                       onClick={() => onToggleAvailability(item)}
-                      disabled={isToggling || isDeleting}
-                      className={`w-[130px] h-8 mx-auto rounded-xl text-xs font-bold transition-all duration-150 active:scale-[0.96] flex items-center justify-center space-x-1.5 shadow-xs ${
-                        isToggling || isDeleting ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+                      disabled={isToggling || isDeleting || item.isCategoryDeleted}
+                      className={`w-[110px] h-8 mx-auto rounded-xl text-xs font-bold transition-all duration-150 active:scale-[0.96] flex items-center justify-center space-x-1.5 shadow-xs whitespace-nowrap ${
+                        isToggling || isDeleting || item.isCategoryDeleted ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                       } ${
                         item.isAvailable
                           ? 'bg-[#FF5C39] hover:bg-[#F04D28] text-white'
                           : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-200/90'
                       }`}
-                      title={item.isAvailable ? 'Click to make unavailable' : 'Click to make available'}
+                      title={
+                        item.isCategoryDeleted
+                          ? 'Category is disabled'
+                          : item.isAvailable
+                          ? 'Click to make unavailable'
+                          : 'Click to make available'
+                      }
                     >
                       {isToggling && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
-                      <span className="truncate">{item.isAvailable ? 'Set Unavailable' : 'Set Available'}</span>
+                      <span className="truncate">{item.isAvailable ? 'Disable' : 'Enable'}</span>
                     </button>
                   </td>
+
+
+
 
                   {/* Fixed Actions */}
                   <td className="py-3.5 px-4 text-right">

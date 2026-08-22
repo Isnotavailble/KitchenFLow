@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Search, X, ChevronDown } from 'lucide-react'
 import { useKds } from '../hooks/useKds'
 
@@ -22,7 +22,8 @@ export default function KdsFilterRow() {
     setLocalInput(searchOrderNumber)
   }
 
-  const filters = ['All', 'Waiting', 'Priority', 'Complete']
+  const filters = ['Active', 'Waiting', 'Priority', 'Complete', 'Cancelled']
+
 
   // Strict integer validation for input typing
   const handleInputChange = (e) => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Search, X } from 'lucide-react'
 import { usePos } from '../hooks/usePos'
 
@@ -11,12 +11,26 @@ export default function CategoryTabs() {
     setSearchQuery
   } = usePos()
 
-  const [localSearch, setLocalSearch] = useState(searchQuery)
+  const [localSearch, setLocalSearch] = useState(searchQuery || '')
   const [prevSearch, setPrevSearch] = useState(searchQuery)
 
   if (prevSearch !== searchQuery) {
     setPrevSearch(searchQuery)
     setLocalSearch(searchQuery)
+  }
+
+  const handleCategorySelect = (cat) => {
+    setSelectedCategory(cat)
+    setLocalSearch('')
+    setSearchQuery('')
+  }
+
+  const handleInputChange = (e) => {
+    const val = e.target.value
+    setLocalSearch(val)
+    if (val.trim() === '') {
+      setSearchQuery('')
+    }
   }
 
   const handleSearchSubmit = (e) => {
@@ -39,7 +53,8 @@ export default function CategoryTabs() {
           return (
             <button
               key={cat}
-              onClick={() => setSelectedCategory(cat)}
+              type="button"
+              onClick={() => handleCategorySelect(cat)}
               className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all duration-150 ease-out shadow-xs cursor-pointer active:scale-[0.96] shrink-0 whitespace-nowrap ${
                 isActive
                   ? 'border-[#FF5C39] bg-[#FF5C39] text-white shadow-sm hover:bg-[#F04D28]'
@@ -61,7 +76,7 @@ export default function CategoryTabs() {
           <input
             type="text"
             value={localSearch}
-            onChange={(e) => setLocalSearch(e.target.value)}
+            onChange={handleInputChange}
             placeholder="Search dishes..."
             className="pl-10 pr-8 py-2 w-44 sm:w-52 bg-white border border-zinc-200/90 rounded-xl text-xs font-medium text-zinc-800 placeholder-zinc-400 shadow-xs outline-none focus:outline-none focus:border-[#FF5C39] transition-all duration-150"
           />
@@ -88,3 +103,4 @@ export default function CategoryTabs() {
     </div>
   )
 }
+

@@ -26,6 +26,9 @@ public class OrderEntity {
     @Column(name = "status", nullable = false, length = 60)
     private String status;
 
+    @Column(name = "order_type",nullable = false,length = 60)
+    private String orderType;
+
     @Column(name = "order_workload_tier",length = 60,nullable = false)
     private String orderWorkloadTier;
 
@@ -63,9 +66,14 @@ public class OrderEntity {
 
     public OrderEntity() {}
 
-    public OrderEntity(Integer orderId, Integer orderNumber, UserEntity userEntity, String status, String orderWorkloadTier, String paymentStatus, String paymentMethod, Integer subtotalPrice, Integer taxAmount, Integer discountAmount, int totalPrice, LocalDateTime createdAt, LocalDateTime updatedAt, boolean isDeleted, List<OrderItemEntity> orderItemEntityList) {
+    public OrderEntity(Integer orderId,
+                       Integer orderNumber, UserEntity userEntity, String status, String orderWorkloadTier,
+                       String paymentStatus, String paymentMethod, Integer subtotalPrice, Integer taxAmount,
+                       Integer discountAmount,String orderType,
+                       int totalPrice, LocalDateTime createdAt, LocalDateTime updatedAt, boolean isDeleted, List<OrderItemEntity> orderItemEntityList) {
         this.id = orderId;
         this.orderNumber = orderNumber;
+        this.orderType = orderType;
         this.userEntity = userEntity;
         this.status = status;
         this.orderWorkloadTier = orderWorkloadTier;
@@ -199,5 +207,13 @@ public class OrderEntity {
 
     public void setOrderItemEntityList(List<OrderItemEntity> orderItemEntityList) {
         this.orderItemEntityList = orderItemEntityList;
+    }
+
+    public String getOrderType() {
+        return orderType;
+    }
+
+    public void setOrderType(String orderType) {
+        this.orderType = orderType;
     }
 }

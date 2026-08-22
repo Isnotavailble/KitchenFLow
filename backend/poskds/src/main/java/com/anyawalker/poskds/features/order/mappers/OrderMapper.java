@@ -29,6 +29,7 @@ public class OrderMapper {
                 orderEntity.getStatus(),
                 message == null || message.isBlank() ? "" : message,
                 orderEntity.getOrderWorkloadTier(),
+                orderEntity.getOrderType(),
                 orderItemResponses,
                 orderEntity.getSubtotalPrice() != null ? orderEntity.getSubtotalPrice() : 0,
                 orderEntity.getTotalPrice(),

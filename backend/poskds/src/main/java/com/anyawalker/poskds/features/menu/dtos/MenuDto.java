@@ -14,6 +14,7 @@ public class MenuDto {
         String imageId,
         Integer categoryId,
         String categoryName,
+        boolean isCategoryDeleted,
         boolean isAvailable,
         int workloadTier,
         LocalDateTime createdAt,
@@ -28,6 +29,7 @@ public class MenuDto {
                 entity.getImageId(),
                 entity.getCategoryEntity() != null ? entity.getCategoryEntity().getId() : null,
                 entity.getCategoryEntity() != null ? entity.getCategoryEntity().getName() : null,
+                entity.getCategoryEntity() != null && entity.getCategoryEntity().isDeleted(),
                 entity.isAvailable(),
                 entity.getWorkloadTier(),
                 entity.getCreatedAt(),
@@ -35,6 +37,7 @@ public class MenuDto {
             );
         }
     }
+
 
     public record CreateRequest(
         String name,

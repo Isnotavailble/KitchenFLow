@@ -48,13 +48,18 @@ export default function SseGlobalListener() {
         window.dispatchEvent(new CustomEvent('kf:order-updated', { detail: rawOrder }))
       },
       onMenuUpdated: (menuData) => {
-        if (menuData?.name) {
+        if (typeof menuData?.isAvailable === 'boolean' && menuData?.name) {
           addToastRef.current?.(`"${menuData.name}" is now ${menuData.isAvailable ? 'Available' : 'Unavailable'}`, 'info')
         } else if (menuData?.deleted) {
           addToastRef.current?.('A menu item was deleted', 'info')
         }
         window.dispatchEvent(new CustomEvent('kf:menu-updated', { detail: menuData }))
       },
+      onCategoryUpdated: (catData) => {
+        window.dispatchEvent(new CustomEvent('kf:category-updated', { detail: catData }))
+      },
+
+
       onError: (err) => {
         console.warn('[SSE] Orders stream reconnecting...', err)
       }

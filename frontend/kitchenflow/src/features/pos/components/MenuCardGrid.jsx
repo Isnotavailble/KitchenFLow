@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { Plus, ImageOff, Loader2, UtensilsCrossed } from 'lucide-react'
 import { usePos } from '../hooks/usePos'
 import WorkloadBadge from '../../kds/components/WorkloadBadge'
+import { formatMMK } from '../../../utils/formatPrice'
+
 
 function MenuImageThumbnail({ item }) {
   const [hasError, setHasError] = useState(false)
@@ -108,9 +110,10 @@ export default function MenuCardGrid() {
 
                   {/* Bottom Row: Price & Dedicated Add Button */}
                   <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-zinc-100">
-                    <span className={`text-base font-black font-sans ${isUnavailable ? 'text-zinc-400' : 'text-zinc-900'}`}>
-                      ${item.price.toFixed(2)}
+                    <span className={`text-sm font-black font-sans ${isUnavailable ? 'text-zinc-400' : 'text-zinc-900'}`}>
+                      {formatMMK(item.price)}
                     </span>
+
                     <button
                       type="button"
                       disabled={isUnavailable}

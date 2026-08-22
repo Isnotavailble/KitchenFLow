@@ -39,7 +39,7 @@ public class PreUpdateMenuTable {
             MenuEntity zinger = new MenuEntity();
             zinger.setName("Spicy Zinger Burger");
             zinger.setCategoryEntity(burgers);
-            zinger.setPrice(850);
+            zinger.setPrice(8500);
             zinger.setAvailable(true);
             zinger.setWorkloadTier(2); // medium (4 pts)
             zinger.setImageUrl("https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80");
@@ -50,7 +50,7 @@ public class PreUpdateMenuTable {
             MenuEntity swiss = new MenuEntity();
             swiss.setName("Mushroom Swiss Burger");
             swiss.setCategoryEntity(burgers);
-            swiss.setPrice(950);
+            swiss.setPrice(9500);
             swiss.setAvailable(true);
             swiss.setWorkloadTier(2); // medium (4 pts)
             swiss.setImageUrl("https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=600&auto=format&fit=crop&q=80");
@@ -61,7 +61,7 @@ public class PreUpdateMenuTable {
             MenuEntity veggieWrap = new MenuEntity();
             veggieWrap.setName("Classic Veggie Wrap");
             veggieWrap.setCategoryEntity(wraps);
-            veggieWrap.setPrice(675);
+            veggieWrap.setPrice(6500);
             veggieWrap.setAvailable(true);
             veggieWrap.setWorkloadTier(1); // light (1 pt)
             veggieWrap.setImageUrl("https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=600&auto=format&fit=crop&q=80");
@@ -72,7 +72,7 @@ public class PreUpdateMenuTable {
             MenuEntity spicyWrap = new MenuEntity();
             spicyWrap.setName("Spicy Chicken Wrap");
             spicyWrap.setCategoryEntity(wraps);
-            spicyWrap.setPrice(795);
+            spicyWrap.setPrice(7500);
             spicyWrap.setAvailable(false);
             spicyWrap.setWorkloadTier(2); // medium (4 pts)
             spicyWrap.setImageUrl("https://images.unsplash.com/photo-1529042410759-befb1204b468?w=600&auto=format&fit=crop&q=80");
@@ -83,7 +83,7 @@ public class PreUpdateMenuTable {
             MenuEntity medPizza = new MenuEntity();
             medPizza.setName("Mediterranzer Pizza");
             medPizza.setCategoryEntity(pizzas);
-            medPizza.setPrice(1450);
+            medPizza.setPrice(14500);
             medPizza.setAvailable(true);
             medPizza.setWorkloadTier(3); // heavy (10 pts)
             medPizza.setImageUrl("https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=600&auto=format&fit=crop&q=80");
@@ -94,7 +94,7 @@ public class PreUpdateMenuTable {
             MenuEntity margherita = new MenuEntity();
             margherita.setName("Classic Margherita Pizza");
             margherita.setCategoryEntity(pizzas);
-            margherita.setPrice(1200);
+            margherita.setPrice(12000);
             margherita.setAvailable(false);
             margherita.setWorkloadTier(3); // heavy (10 pts)
             margherita.setImageUrl("https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=600&auto=format&fit=crop&q=80");
@@ -105,7 +105,7 @@ public class PreUpdateMenuTable {
             MenuEntity caesar = new MenuEntity();
             caesar.setName("Vegan Caesar Salad");
             caesar.setCategoryEntity(salads);
-            caesar.setPrice(750);
+            caesar.setPrice(7000);
             caesar.setAvailable(true);
             caesar.setWorkloadTier(1); // light (1 pt)
             caesar.setImageUrl("https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&auto=format&fit=crop&q=80");
@@ -116,7 +116,7 @@ public class PreUpdateMenuTable {
             MenuEntity tofuBowl = new MenuEntity();
             tofuBowl.setName("Crispy Tofu Power Bowl");
             tofuBowl.setCategoryEntity(salads);
-            tofuBowl.setPrice(900);
+            tofuBowl.setPrice(8500);
             tofuBowl.setAvailable(true);
             tofuBowl.setWorkloadTier(2); // medium (4 pts)
             tofuBowl.setImageUrl("https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop&q=80");
@@ -127,7 +127,7 @@ public class PreUpdateMenuTable {
             MenuEntity lemonade = new MenuEntity();
             lemonade.setName("Iced Citrus Lemonade");
             lemonade.setCategoryEntity(beverages);
-            lemonade.setPrice(350);
+            lemonade.setPrice(3500);
             lemonade.setAvailable(true);
             lemonade.setWorkloadTier(1); // light (1 pt)
             lemonade.setImageUrl("https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&auto=format&fit=crop&q=80");
@@ -138,12 +138,13 @@ public class PreUpdateMenuTable {
             MenuEntity coldBrew = new MenuEntity();
             coldBrew.setName("Cold Brew Craft Coffee");
             coldBrew.setCategoryEntity(beverages);
-            coldBrew.setPrice(425);
+            coldBrew.setPrice(4500);
             coldBrew.setAvailable(true);
             coldBrew.setWorkloadTier(1); // light (1 pt)
             coldBrew.setImageUrl("https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&auto=format&fit=crop&q=80");
             coldBrew.setImageId("poskds/seed_cold_brew");
             menuRepo.save(coldBrew);
+
 
             log.info("Menu table seeded successfully with 10 casual menu items.");
         }

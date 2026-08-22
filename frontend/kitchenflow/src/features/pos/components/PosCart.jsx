@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Trash2, Plus, Minus, CreditCard, Banknote, ShoppingBag, X, Utensils, Edit2, Check, AlertCircle } from 'lucide-react'
 import { usePos } from '../hooks/usePos'
+import { formatMMK } from '../../../utils/formatPrice'
+
 
 function CartItemNote({ item, onSaveNote }) {
   const [isEditing, setIsEditing] = useState(false)
@@ -133,8 +135,9 @@ export default function PosCart() {
   }
 
   const changeDue = isCash && isCashEntered && !isNaN(cashNum) && cashNum > total
-    ? (cashNum - total).toFixed(2)
-    : '0.00'
+    ? Math.round(cashNum - total)
+    : 0
+
 
   return (
     <aside className="w-80 sm:w-96 bg-white border-l border-zinc-200/80 shadow-xs flex flex-col h-full select-none shrink-0">
@@ -212,7 +215,7 @@ export default function PosCart() {
                     {item.name}
                   </span>
                   <span className="text-[11px] text-zinc-500 font-medium block mt-0.5">
-                    ${item.price.toFixed(2)} each
+                    {formatMMK(item.price)} each
                   </span>
                 </div>
 
@@ -241,8 +244,8 @@ export default function PosCart() {
                     </button>
                   </div>
 
-                  <span className="text-xs font-bold text-zinc-900 font-sans w-12 text-right">
-                    ${(item.price * item.qty).toFixed(2)}
+                  <span className="text-xs font-bold text-zinc-900 font-sans min-w-[60px] text-right">
+                    {formatMMK(item.price * item.qty)}
                   </span>
 
                   <button
@@ -298,20 +301,20 @@ export default function PosCart() {
             <div className="flex items-center space-x-1">
               <span className="text-xs font-semibold text-zinc-600">Cash:</span>
               <div className="flex items-center">
-                <span className="text-xs text-zinc-400 font-bold mr-0.5">$</span>
                 <input
                   type="number"
-                  step="any"
+                  step="100"
                   min={0}
                   value={cashTendered}
                   onChange={(e) => setCashTendered(e.target.value)}
-                  placeholder={total.toFixed(2)}
-                  className={`w-20 px-2 py-0.5 bg-white border rounded-md text-xs font-bold text-right outline-none transition ${
+                  placeholder={String(total)}
+                  className={`w-24 px-2 py-0.5 bg-white border rounded-md text-xs font-bold text-right outline-none transition ${
                     isUnderpaid || isInvalidNumber
                       ? 'border-rose-400 bg-rose-50/40 text-rose-700'
                       : 'border-zinc-200 focus:border-[#FF5C39]'
                   }`}
                 />
+                <span className="text-[10px] text-zinc-400 font-bold ml-1">MMK</span>
               </div>
             </div>
           )}
@@ -321,7 +324,7 @@ export default function PosCart() {
         {isUnderpaid && (
           <div className="flex items-center space-x-1 p-1 bg-rose-50 border border-rose-200 rounded text-[11px] text-rose-600 font-semibold">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-            <span>Received amount is less than total (${total.toFixed(2)})</span>
+            <span>Received amount is less than total ({formatMMK(total)})</span>
           </div>
         )}
 
@@ -329,23 +332,24 @@ export default function PosCart() {
         <div className="space-y-1 text-xs">
           <div className="flex justify-between text-zinc-500">
             <span>Subtotal</span>
-            <span>${subtotal.toFixed(2)}</span>
+            <span>{formatMMK(subtotal)}</span>
           </div>
           <div className="flex justify-between text-zinc-500">
             <span>Tax (5%)</span>
-            <span>${taxAmount.toFixed(2)}</span>
+            <span>{formatMMK(taxAmount)}</span>
           </div>
           {isCash && parseFloat(changeDue) > 0 && (
             <div className="flex justify-between text-emerald-600 font-semibold">
               <span>Change Due</span>
-              <span>${changeDue}</span>
+              <span>{formatMMK(changeDue)}</span>
             </div>
           )}
           <div className="flex justify-between text-base font-black text-zinc-900 pt-1.5 border-t border-zinc-200/70">
             <span>Total</span>
-            <span className="text-[#FF5C39]">${total.toFixed(2)}</span>
+            <span className="text-[#FF5C39]">{formatMMK(total)}</span>
           </div>
         </div>
+
 
         {/* Row 3: Dedicated Separate Full-Width Send to Kitchen Button */}
         <button

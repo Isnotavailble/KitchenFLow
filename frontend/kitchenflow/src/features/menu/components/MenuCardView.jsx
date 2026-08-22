@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Edit2, Trash2, ImageOff, UtensilsCrossed, Loader2 } from 'lucide-react'
 import WorkloadBadge from '../../kds/components/WorkloadBadge'
+import { formatMMK } from '../../../utils/formatPrice'
+
 
 function CardThumbnail({ item }) {
   const [hasError, setHasError] = useState(false)
@@ -115,28 +117,39 @@ export default function MenuCardView({
 
               {/* Bottom Row: Price & Full-Size Management Action Controls */}
               <div className="mt-3.5 pt-3 border-t border-zinc-100 flex items-center justify-between gap-2">
-                <span className={`text-base font-black font-sans ${isUnavailable ? 'text-zinc-400' : 'text-zinc-900'}`}>
-                  ${item.price.toFixed(2)}
+                <span className={`text-sm font-black font-sans ${isUnavailable ? 'text-zinc-400' : 'text-zinc-900'}`}>
+                  {formatMMK(item.price)}
                 </span>
 
+
                 <div className="flex items-center space-x-1.5">
-                  {/* Full-Sized Action Button with Proper Label */}
+                  {/* Compact Action Button with whitespace-nowrap */}
                   <button
                     type="button"
                     onClick={() => onToggleAvailability(item)}
-                    disabled={isToggling || isDeleting}
-                    className={`h-8 px-3 rounded-xl text-xs font-bold transition-all duration-150 active:scale-[0.96] flex items-center justify-center space-x-1.5 shadow-xs ${
-                      isToggling || isDeleting ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+                    disabled={isToggling || isDeleting || item.isCategoryDeleted}
+                    className={`h-8 px-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-[0.96] flex items-center justify-center space-x-1 shadow-xs whitespace-nowrap shrink-0 ${
+                      isToggling || isDeleting || item.isCategoryDeleted ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                     } ${
                       item.isAvailable
                         ? 'bg-[#FF5C39] hover:bg-[#F04D28] text-white'
                         : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-200/90'
                     }`}
-                    title={item.isAvailable ? 'Click to make unavailable' : 'Click to make available'}
+                    title={
+                      item.isCategoryDeleted
+                        ? 'Category is disabled'
+                        : item.isAvailable
+                        ? 'Click to make unavailable'
+                        : 'Click to make available'
+                    }
                   >
                     {isToggling && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
-                    <span>{item.isAvailable ? 'Set Unavailable' : 'Set Available'}</span>
+                    <span>{item.isAvailable ? 'Disable' : 'Enable'}</span>
                   </button>
+
+
+
+
 
                   {/* Edit Button */}
                   <button

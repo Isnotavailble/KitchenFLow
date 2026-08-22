@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, X } from 'lucide-react'
 
 export default function MenuToolbar({
@@ -14,6 +14,20 @@ export default function MenuToolbar({
     setLocalSearchInput(searchQuery || '')
   }, [searchQuery])
 
+  const handleCategorySelect = (cat) => {
+    onSelectCategory(cat)
+    setLocalSearchInput('')
+    onSearchChange('')
+  }
+
+  const handleInputChange = (e) => {
+    const val = e.target.value
+    setLocalSearchInput(val)
+    if (val.trim() === '') {
+      onSearchChange('')
+    }
+  }
+
   const handleSearchSubmit = (e) => {
     e.preventDefault()
     onSearchChange(localSearchInput.trim())
@@ -25,16 +39,16 @@ export default function MenuToolbar({
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 select-none shrink-0">
-      {/* Category Filter Pills */}
-      <div className="flex items-center space-x-1.5 overflow-x-auto no-scrollbar scroll-smooth">
+    <div className="flex items-center justify-between gap-3 select-none shrink-0 w-full">
+      {/* Category Filter Pills (Horizontal Scroll on X-axis, never wraps) */}
+      <div className="flex items-center space-x-1.5 overflow-x-auto no-scrollbar scroll-smooth min-w-0 flex-1 py-1">
         {categories.map((cat) => {
           const isActive = selectedCategory === cat
           return (
             <button
               key={cat}
               type="button"
-              onClick={() => onSelectCategory(cat)}
+              onClick={() => handleCategorySelect(cat)}
               className={`px-4 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
                 isActive
                   ? 'bg-[#FF5C39] text-white shadow-2xs'
@@ -47,16 +61,16 @@ export default function MenuToolbar({
         })}
       </div>
 
-      {/* Dedicated Search Form with Button (No Live on-change search) */}
-      <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2 w-full sm:w-auto">
-        <div className="relative flex items-center flex-1 sm:w-60">
+      {/* Dedicated Search Form with Button */}
+      <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2 shrink-0">
+        <div className="relative flex items-center w-48 sm:w-60">
           <div className="absolute left-3 pointer-events-none text-zinc-400">
             <Search className="w-3.5 h-3.5" />
           </div>
           <input
             type="text"
             value={localSearchInput}
-            onChange={(e) => setLocalSearchInput(e.target.value)}
+            onChange={handleInputChange}
             placeholder="Search menu..."
             className="w-full pl-8 pr-7 py-1.5 bg-white border border-zinc-200/90 rounded-xl text-xs font-medium text-zinc-800 placeholder-zinc-400 shadow-2xs focus:border-[#FF5C39] outline-none transition"
           />
@@ -82,3 +96,5 @@ export default function MenuToolbar({
     </div>
   )
 }
+
+

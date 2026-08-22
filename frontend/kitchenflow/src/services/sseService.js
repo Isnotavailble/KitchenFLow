@@ -108,7 +108,10 @@ async function startStream() {
               subscribers.forEach((sub) => sub.onOrderUpdated?.(data))
             } else if (eventName === 'menu-updated') {
               subscribers.forEach((sub) => sub.onMenuUpdated?.(data))
+            } else if (eventName === 'category-updated') {
+              subscribers.forEach((sub) => sub.onCategoryUpdated?.(data))
             }
+
           } catch {
             if (eventName === 'INIT') {
               subscribers.forEach((sub) => sub.onConnect?.())

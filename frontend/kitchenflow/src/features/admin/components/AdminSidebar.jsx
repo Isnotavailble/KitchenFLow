@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { NavLink, useNavigate, Link } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -12,8 +12,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen
 } from 'lucide-react'
-import { useAuth } from '../features/auth/hooks/useAuth'
-import pageLogo from '../assets/page_logo.png'
+import { useAuth } from '../../auth/hooks/useAuth'
+import pageLogo from '../../../assets/page_logo.png'
 
 export default function AdminSidebar() {
   const { user, logout } = useAuth()
@@ -58,16 +58,16 @@ export default function AdminSidebar() {
   return (
     <aside
       className={`h-full bg-white border-r border-zinc-200/80 flex flex-col justify-between shrink-0 select-none z-20 transition-all duration-300 ease-in-out ${
-        isCollapsed ? 'w-20' : 'w-64'
+        isCollapsed ? 'w-20' : 'w-56'
       }`}
     >
       {/* Top Section: Brand Header & Navigation */}
       <div className="flex flex-col min-h-0">
-        {/* 1. Brand Header (Roomy 16px padding inside 80px column) */}
-        <div className="px-4 py-3 border-b border-zinc-100 flex flex-col space-y-2 shrink-0 overflow-hidden">
+        {/* 1. Brand Header */}
+        <div className="px-3 py-3 border-b border-zinc-100 flex flex-col space-y-2 shrink-0 overflow-hidden">
+
           {/* Top Row: Logo & Brand Title + Collapse Button */}
           <div className="flex items-center h-11 w-full overflow-hidden shrink-0">
-            {/* Logo Touch Target: Sits with ample space */}
             <div className="w-11 h-11 flex items-center justify-center shrink-0">
               <div className="w-10 h-10 rounded-xl overflow-hidden shadow-2xs flex items-center justify-center bg-[#FF5C39]">
                 <img
@@ -106,7 +106,7 @@ export default function AdminSidebar() {
             </div>
           </div>
 
-          {/* Bottom Row: Dedicated Open Button beneath page icon */}
+          {/* Bottom Row: Expand Button */}
           <div
             className={`transition-all duration-300 overflow-hidden ${
               isCollapsed ? 'max-h-12 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
@@ -126,16 +126,18 @@ export default function AdminSidebar() {
         </div>
 
         {/* 2. Navigation Items */}
-        <div className="px-4 py-3 space-y-3.5 overflow-y-auto no-scrollbar">
+        <div className="px-3 py-3 space-y-3.5 overflow-y-auto no-scrollbar">
+
           {/* Management Section */}
           <div>
             <span
-              className={`px-1 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider block transition-all duration-300 overflow-hidden whitespace-nowrap ${
+              className={`px-1 text-[11px] font-semibold text-zinc-400 block transition-all duration-300 overflow-hidden whitespace-nowrap ${
                 isCollapsed ? 'max-h-0 opacity-0 mb-0' : 'max-h-5 opacity-100 mb-1.5'
               }`}
             >
               Management
             </span>
+
             <nav className="space-y-1">
               {managementNav.map((item) => {
                 const Icon = item.icon
@@ -178,14 +180,15 @@ export default function AdminSidebar() {
                           />
                         </div>
                         <span
-                          className={`truncate whitespace-nowrap transition-all duration-300 ${
+                          className={`truncate whitespace-nowrap transition-all duration-300 font-bold ${
                             isCollapsed
                               ? 'max-w-0 opacity-0 pointer-events-none ml-0'
                               : 'max-w-[150px] opacity-100 ml-2'
-                          }`}
+                          } ${isActive ? 'text-white' : 'text-zinc-600'}`}
                         >
                           {item.label}
                         </span>
+
                       </>
                     )}
                   </NavLink>
@@ -200,52 +203,78 @@ export default function AdminSidebar() {
           {/* Stations Section */}
           <div>
             <span
-              className={`px-1 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider block transition-all duration-300 overflow-hidden whitespace-nowrap ${
+              className={`px-1 text-[11px] font-semibold text-zinc-400 block transition-all duration-300 overflow-hidden whitespace-nowrap ${
                 isCollapsed ? 'max-h-0 opacity-0 mb-0' : 'max-h-5 opacity-100 mb-1.5'
               }`}
             >
               Stations
             </span>
+
             <nav className="space-y-1">
               {liveStations.map((item) => {
                 const Icon = item.icon
                 return (
-                  <Link
+                  <NavLink
                     key={item.to}
                     to={item.to}
                     title={isCollapsed ? item.label : undefined}
-                    className={`w-full h-11 flex items-center rounded-xl text-xs font-bold text-zinc-600 hover:text-zinc-900 transition-colors duration-150 overflow-hidden ${
-                      isCollapsed ? 'justify-start' : 'hover:bg-zinc-100/80'
-                    }`}
-                  >
-                    <div
-                      className={`w-11 h-11 flex items-center justify-center shrink-0 rounded-xl transition-colors ${
-                        isCollapsed ? 'hover:bg-zinc-100/80 text-[#FF5C39]' : ''
-                      }`}
-                    >
-                      <Icon className="w-5 h-5 text-[#FF5C39]" />
-                    </div>
-                    <span
-                      className={`truncate whitespace-nowrap transition-all duration-300 ${
+                    className={({ isActive }) =>
+                      `w-full h-11 flex items-center rounded-xl text-xs font-bold transition-colors duration-150 overflow-hidden ${
                         isCollapsed
-                          ? 'max-w-0 opacity-0 pointer-events-none'
-                          : 'max-w-[150px] opacity-100 ml-2'
-                      }`}
-                    >
-                      {item.label}
-                    </span>
-                  </Link>
+                          ? 'justify-start'
+                          : isActive
+                            ? 'bg-[#FF5C39] text-white shadow-xs'
+                            : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/80'
+                      }`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <div
+                          className={`w-11 h-11 flex items-center justify-center shrink-0 rounded-xl transition-colors ${
+                            isCollapsed
+                              ? isActive
+                                ? 'bg-[#FF5C39] text-white shadow-xs'
+                                : 'text-[#FF5C39] hover:bg-zinc-100/80'
+                              : ''
+                          }`}
+                        >
+                          <Icon
+                            className={`w-5 h-5 transition-colors ${
+                              isCollapsed
+                                ? isActive
+                                  ? 'text-white'
+                                  : 'text-[#FF5C39]'
+                                : isActive
+                                  ? 'text-white'
+                                  : 'text-[#FF5C39]'
+                            }`}
+                          />
+                        </div>
+                        <span
+                          className={`truncate whitespace-nowrap transition-all duration-300 font-bold ${
+                            isCollapsed
+                              ? 'max-w-0 opacity-0 pointer-events-none ml-0'
+                              : 'max-w-[150px] opacity-100 ml-2'
+                          } ${isActive ? 'text-white' : 'text-zinc-600'}`}
+                        >
+                          {item.label}
+                        </span>
+                      </>
+                    )}
+                  </NavLink>
                 )
               })}
             </nav>
+
           </div>
         </div>
       </div>
 
       {/* 3. Bottom Section: User Profile */}
-      <div className="px-4 py-3 border-t border-zinc-100 bg-zinc-50/50 flex items-center justify-between overflow-hidden shrink-0">
+      <div className="px-3 py-3 border-t border-zinc-100 bg-zinc-50/50 flex items-center justify-between overflow-hidden shrink-0">
+
         <div className="flex items-center min-w-0">
-          {/* Avatar Touch Target */}
           <div className="w-11 h-11 flex items-center justify-center shrink-0">
             <div
               className="w-10 h-10 rounded-xl bg-white border border-zinc-200/80 shadow-2xs flex items-center justify-center text-[#FF5C39] shrink-0"
@@ -255,7 +284,6 @@ export default function AdminSidebar() {
             </div>
           </div>
 
-          {/* User Name & Role */}
           <div
             className={`min-w-0 transition-all duration-300 overflow-hidden whitespace-nowrap ${
               isCollapsed ? 'max-w-0 opacity-0 pointer-events-none ml-0' : 'max-w-[120px] opacity-100 ml-3'
@@ -270,7 +298,6 @@ export default function AdminSidebar() {
           </div>
         </div>
 
-        {/* Logout Button */}
         <div
           className={`transition-all duration-300 overflow-hidden ${
             isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[40px] opacity-100 ml-auto'
@@ -289,3 +316,4 @@ export default function AdminSidebar() {
     </aside>
   )
 }
+
