@@ -21,11 +21,9 @@ public class MenuController {
     }
 
     private void broadcastMenuUpdate(Object data) {
-        List<String> roles = List.of("ROLE_ADMIN", "ROLE_CASHIER", "ROLE_CHEF");
-        for (String role : roles) {
-            eventEmitterService.publish(role, "menu-updated", data);
-        }
+        eventEmitterService.publish("ROLE_ADMIN", "menu-updated", data);
     }
+
 
     @GetMapping
     public ResponseEntity<?> viewMenus(
