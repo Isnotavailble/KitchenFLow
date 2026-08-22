@@ -2,6 +2,7 @@ import React from 'react'
 import { CheckCircle2, X, Printer, Utensils, ShoppingBag } from 'lucide-react'
 import { usePos } from '../hooks/usePos'
 import WorkloadBadge from '../../kds/components/WorkloadBadge'
+import { formatMMK } from '../../../utils/formatPrice'
 
 export default function ReceiptModal() {
   const { activeReceipt, setActiveReceipt } = usePos()
@@ -68,7 +69,7 @@ export default function ReceiptModal() {
                   {item.qty}x {item.name}
                 </span>
                 <span className="font-mono text-zinc-500">
-                  ${((item.price || 0) * item.qty).toFixed(2)}
+                  {formatMMK((item.price || 0) * item.qty)}
                 </span>
               </div>
               {item.itemCustomization && (
@@ -91,23 +92,24 @@ export default function ReceiptModal() {
           </div>
           <div className="flex justify-between text-zinc-500">
             <span>Subtotal:</span>
-            <span className="font-mono text-zinc-700">${activeReceipt.financials.subtotal.toFixed(2)}</span>
+            <span className="font-mono text-zinc-700">{formatMMK(activeReceipt.financials.subtotal)}</span>
           </div>
           <div className="flex justify-between text-zinc-500">
             <span>Tax (5%):</span>
-            <span className="font-mono text-zinc-700">${activeReceipt.financials.tax.toFixed(2)}</span>
+            <span className="font-mono text-zinc-700">{formatMMK(activeReceipt.financials.tax)}</span>
           </div>
           {activeReceipt.financials.change > 0 && (
             <div className="flex justify-between text-emerald-600 font-semibold">
               <span>Change Due:</span>
-              <span className="font-mono">${activeReceipt.financials.change.toFixed(2)}</span>
+              <span className="font-mono">{formatMMK(activeReceipt.financials.change)}</span>
             </div>
           )}
           <div className="flex justify-between font-black text-sm text-zinc-900 pt-1.5 border-t border-zinc-100">
             <span>Total Paid:</span>
-            <span className="text-[#FF5C39] font-mono">${activeReceipt.financials.total.toFixed(2)}</span>
+            <span className="text-[#FF5C39] font-mono">{formatMMK(activeReceipt.financials.total)}</span>
           </div>
         </div>
+
 
         {/* Action Buttons */}
         <div className="mt-5 flex gap-2.5">

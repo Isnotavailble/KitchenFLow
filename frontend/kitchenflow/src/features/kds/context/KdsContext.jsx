@@ -104,10 +104,11 @@ export function KdsProvider({ children }) {
         category: i.categoryName || i.category || 'General',
         qty: i.quantity || 1,
         desc: '',
-        price: i.unitPrice ? i.unitPrice / 100 : 0,
+        price: i.unitPrice || 0,
         image: i.imageUrl || i.image || i.menuImageUrl || null,
         itemNote: i.itemNote || null
       }))
+
     }
   }, [])
 

@@ -82,7 +82,7 @@ export default function MenuPage() {
         category: item.categoryName || item.category || 'General',
         categoryId: item.categoryId || null,
         isCategoryDeleted: item.isCategoryDeleted ?? false,
-        price: item.price ? item.price / 100 : 0,
+        price: item.price || 0,
         workloadTier: item.workloadTier === 1 ? 'light' : item.workloadTier === 3 ? 'heavy' : 'medium',
         prepPoints: item.workloadTier === 1 ? 1 : item.workloadTier === 3 ? 10 : 4,
         desc: item.desc || '',
@@ -91,6 +91,7 @@ export default function MenuPage() {
         imageId: item.imageId || null,
         isAvailable: item.isAvailable ?? true
       }))
+
 
       setMenuItems(mapped)
       setTotalCount(res?.totalCount ?? mapped.length)
@@ -177,13 +178,13 @@ export default function MenuPage() {
 
     setIsSubmitting(true)
     try {
-      const priceCents = Math.round(parseFloat(formPrice) * 100)
+      const priceValue = parseInt(formPrice, 10) || 0
       const matchedCat = categoryList.find(
         (c) => c.name?.toLowerCase() === formCategory?.toLowerCase() || c.id === formCategory || String(c.id) === String(formCategory)
       )
       const payload = {
         name: formName.trim(),
-        price: priceCents,
+        price: priceValue,
         categoryId: matchedCat?.id || null,
         workloadTier: parseInt(formTier, 10),
         desc: formDesc.trim(),
@@ -191,6 +192,7 @@ export default function MenuPage() {
         imageId: formImageId.trim() || null,
         isAvailable: formIsAvailable
       }
+
 
       if (editingItem) {
         await Promise.all([

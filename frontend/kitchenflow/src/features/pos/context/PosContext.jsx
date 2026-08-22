@@ -46,10 +46,11 @@ const mapOrderToTicket = (o) => {
       category: i.categoryName || i.category || 'General',
       qty: i.quantity || 1,
       desc: '',
-      price: i.unitPrice ? i.unitPrice / 100 : 0,
+      price: i.unitPrice || 0,
       image: i.imageUrl || i.image || i.menuImageUrl || null,
       itemCustomization: i.itemNote || null
     }))
+
   }
 }
 
@@ -147,16 +148,19 @@ export function PosProvider({ children }) {
         id: item.id,
         name: item.name,
         category: item.categoryName || item.category || 'General',
-        price: item.price ? item.price / 100 : 0,
+        price: item.price || 0,
         workloadTier: item.workloadTier === 1 ? 'light' : item.workloadTier === 3 ? 'heavy' : 'medium',
         prepPoints: item.workloadTier === 1 ? 1 : item.workloadTier === 3 ? 10 : 4,
         desc: item.desc || '',
         image: item.imageUrl || null,
         imageUrl: item.imageUrl || null,
         imageId: item.imageId || null,
+        isCategoryDeleted: item.isCategoryDeleted ?? false,
         isAvailable: item.isAvailable ?? true
       }))
-      setMenuList(mapped)
+      // POS only shows available menu items whose categories are active
+      const availableOnly = mapped.filter((item) => item.isAvailable && !item.isCategoryDeleted)
+      setMenuList(availableOnly)
     } catch (err) {
       console.error('Failed to load menu from backend:', err)
     } finally {
@@ -181,34 +185,19 @@ export function PosProvider({ children }) {
       if (detail.deleted) {
         setMenuList((prev) => prev.filter((m) => m.id !== detail.id))
       } else {
-        setMenuList((prev) => {
-          const exists = prev.some((m) => m.id === detail.id)
-          if (!exists) {
-            reloadMenu()
-            return prev
-          }
-          return prev.map((m) =>
-            m.id === detail.id
-              ? {
-                  ...m,
-                  name: detail.name || m.name,
-                  price: detail.price ? detail.price / 100 : m.price,
-                  category: detail.categoryName || detail.category || m.category,
-                  isAvailable: detail.isAvailable ?? m.isAvailable,
-                  image: detail.imageUrl || m.image,
-                  imageUrl: detail.imageUrl || m.imageUrl
-                }
-              : m
-          )
-        })
+        // If dish becomes unavailable or category deleted, remove from POS menu list; otherwise refresh
+        reloadMenu()
       }
     }
 
     window.addEventListener('kf:menu-updated', handleMenuUpdate)
+    window.addEventListener('kf:category-updated', reloadMenu)
     return () => {
       window.removeEventListener('kf:menu-updated', handleMenuUpdate)
+      window.removeEventListener('kf:category-updated', reloadMenu)
     }
   }, [reloadMenu])
+
 
   // Direct server-filtered menu items
   const filteredMenuItems = menuList
@@ -303,13 +292,14 @@ export function PosProvider({ children }) {
           itemCustomization: i.note ? i.note.trim() : null
         })),
         financials: {
-          subtotal: backendResponse?.totalPriceBeforeTax ? backendResponse.totalPriceBeforeTax / 100 : parseFloat(subtotal.toFixed(2)),
-          tax: backendResponse?.taxAmount ? backendResponse.taxAmount / 100 : parseFloat(taxAmount.toFixed(2)),
-          total: backendResponse?.totalPriceAfterTax ? backendResponse.totalPriceAfterTax / 100 : parseFloat(total.toFixed(2)),
+          subtotal: backendResponse?.totalPriceBeforeTax || subtotal,
+          tax: backendResponse?.taxAmount || taxAmount,
+          total: backendResponse?.totalPriceAfterTax || total,
           paymentMethod,
           cashTendered: cashTendered || total,
           change: cashTendered ? Math.max(0, cashTendered - total) : 0
         }
+
       }
 
       setRecentOrders((prev) => [newOrder, ...prev.slice(0, 19)])

@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Edit2, Trash2, ImageOff, UtensilsCrossed, Loader2 } from 'lucide-react'
 import WorkloadBadge from '../../kds/components/WorkloadBadge'
+import { formatMMK } from '../../../utils/formatPrice'
+
 
 function CardThumbnail({ item }) {
   const [hasError, setHasError] = useState(false)
@@ -115,9 +117,10 @@ export default function MenuCardView({
 
               {/* Bottom Row: Price & Full-Size Management Action Controls */}
               <div className="mt-3.5 pt-3 border-t border-zinc-100 flex items-center justify-between gap-2">
-                <span className={`text-base font-black font-sans ${isUnavailable ? 'text-zinc-400' : 'text-zinc-900'}`}>
-                  ${item.price.toFixed(2)}
+                <span className={`text-sm font-black font-sans ${isUnavailable ? 'text-zinc-400' : 'text-zinc-900'}`}>
+                  {formatMMK(item.price)}
                 </span>
+
 
                 <div className="flex items-center space-x-1.5">
                   {/* Compact Action Button with whitespace-nowrap */}

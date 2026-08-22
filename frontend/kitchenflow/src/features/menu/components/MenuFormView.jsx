@@ -125,14 +125,9 @@ export default function MenuFormView({
                     </button>
                   )}
                 </div>
-
-                <input
-                  type="url"
-                  value={formImageUrl}
-                  onChange={(e) => setFormImageUrl(e.target.value)}
-                  placeholder="Or paste direct image URL (Unsplash or Cloudinary)..."
-                  className="w-full px-3 py-1.5 text-xs bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:border-[#FF5C39] outline-none"
-                />
+                <span className="text-[11px] text-zinc-400 block">
+                  PNG, JPG, or WEBP up to 5MB.
+                </span>
               </div>
             </div>
           </div>
@@ -155,20 +150,21 @@ export default function MenuFormView({
 
             <div>
               <label className="block text-xs font-bold text-zinc-700 mb-1">
-                Price ($ USD) *
+                Price (MMK) *
               </label>
               <input
                 type="number"
-                step="0.01"
+                step="50"
                 min="0"
                 required
                 value={formPrice}
                 onChange={(e) => setFormPrice(e.target.value)}
-                placeholder="e.g. 8.50"
+                placeholder="e.g. 8500"
                 className="w-full px-3.5 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:border-[#FF5C39] outline-none font-medium text-zinc-900"
               />
             </div>
           </div>
+
 
           {/* Category & Workload Tier */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

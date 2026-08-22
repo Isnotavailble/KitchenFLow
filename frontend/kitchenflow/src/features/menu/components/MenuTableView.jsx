@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Edit2, Trash2, ImageOff, UtensilsCrossed, Loader2 } from 'lucide-react'
 import WorkloadBadge from '../../kds/components/WorkloadBadge'
+import { formatMMK } from '../../../utils/formatPrice'
+
 
 function TableThumbnail({ item }) {
   const [hasError, setHasError] = useState(false)
@@ -111,8 +113,9 @@ export default function MenuTableView({
 
                   {/* Price */}
                   <td className="py-3.5 px-4 font-black font-sans text-zinc-900">
-                    ${item.price.toFixed(2)}
+                    {formatMMK(item.price)}
                   </td>
+
 
                   {/* Fixed-Width 1-Click Availability Toggle */}
                   <td className="py-3.5 px-4 text-center">
