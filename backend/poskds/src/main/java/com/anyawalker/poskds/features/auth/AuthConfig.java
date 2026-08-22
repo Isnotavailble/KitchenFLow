@@ -60,16 +60,16 @@ public class AuthConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**")
                         .permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/menu/**")
+                        .requestMatchers(HttpMethod.GET, "/api/menu", "/api/menu/**")
                         .permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/categories/**", "/api/categories")
+                        .requestMatchers(HttpMethod.GET, "/api/categories", "/api/categories/**")
                         .permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/api/pre-orders/**", "/api/pre-orders")
+                        .requestMatchers(HttpMethod.POST, "/api/pre-orders", "/api/pre-orders/**")
                         .permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/pre-orders/**")
+                        .requestMatchers(HttpMethod.GET, "/api/pre-orders", "/api/pre-orders/**")
                         .permitAll()
 
                         .requestMatchers("/api/orders", "/api/orders/**")

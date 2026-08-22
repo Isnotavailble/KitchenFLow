@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { Loader2, UtensilsCrossed, Plus, LayoutGrid, List as ListIcon } from 'lucide-react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { Loader2, UtensilsCrossed, Plus, LayoutGrid, List as ListIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import { menuApi } from './api/menuApi'
+import { categoryApi } from '../category/api/categoryApi'
 import { imageApi } from './api/imageApi'
 import { useToast } from '../../hooks/useToast'
 import AdminPageHeader from '../../components/AdminPageHeader'
@@ -14,8 +15,14 @@ export default function MenuPage() {
 
   const [menuItems, setMenuItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const [categories, setCategories] = useState(['All'])
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
+
   const [viewMode, setViewMode] = useState('list') // 'list' | 'create' | 'edit'
   const [layoutMode, setLayoutMode] = useState('grid') // 'grid' | 'table'
   const [editingItem, setEditingItem] = useState(null)
@@ -34,123 +41,64 @@ export default function MenuPage() {
   const [formImageId, setFormImageId] = useState('')
   const [formIsAvailable, setFormIsAvailable] = useState(true)
 
-  // Load menu items from backend API
-  const fetchMenu = useCallback(async () => {
+  // Fetch categories from DB
+  const fetchCategories = useCallback(async () => {
+    try {
+      const data = await categoryApi.getAllCategories()
+      if (Array.isArray(data)) {
+        setCategories(['All', ...data.map((c) => c.name || c)])
+      }
+    } catch (err) {
+      console.error('Failed to load categories:', err)
+    }
+  }, [])
+
+  // Load menu items with pagination and filters
+  const fetchMenu = useCallback(async (targetPage = 0) => {
     try {
       setLoading(true)
-      const data = await menuApi.getAllMenu()
-      if (Array.isArray(data)) {
-        const mapped = data.map((item) => ({
-          id: item.id,
-          name: item.name,
-          category: item.categoryName || item.category || 'General',
-          price: item.price ? item.price / 100 : 0,
-          workloadTier: item.workloadTier === 1 ? 'light' : item.workloadTier === 3 ? 'heavy' : 'medium',
-          prepPoints: item.workloadTier === 1 ? 1 : item.workloadTier === 3 ? 10 : 4,
-          desc: item.desc || '',
-          image: item.imageUrl || null,
-          imageUrl: item.imageUrl || null,
-          imageId: item.imageId || null,
-          isAvailable: item.isAvailable ?? true
-        }))
-        setMenuItems(mapped)
-      }
+      const res = await menuApi.getAllMenu({
+        category: selectedCategory,
+        search: searchQuery,
+        page: targetPage,
+        size: 20
+      })
+      const rawList = Array.isArray(res) ? res : (res?.items || [])
+      const mapped = rawList.map((item) => ({
+        id: item.id,
+        name: item.name,
+        category: item.categoryName || item.category || 'General',
+        price: item.price ? item.price / 100 : 0,
+        workloadTier: item.workloadTier === 1 ? 'light' : item.workloadTier === 3 ? 'heavy' : 'medium',
+        prepPoints: item.workloadTier === 1 ? 1 : item.workloadTier === 3 ? 10 : 4,
+        desc: item.desc || '',
+        image: item.imageUrl || null,
+        imageUrl: item.imageUrl || null,
+        imageId: item.imageId || null,
+        isAvailable: item.isAvailable ?? true
+      }))
+      setMenuItems(mapped)
+      setTotalCount(res?.totalCount ?? mapped.length)
+      setTotalPages(res?.totalPages ?? 1)
+      setHasMore(res?.hasMore ?? false)
+      setPage(res?.page ?? targetPage)
     } catch (err) {
       console.error('Failed to load menu:', err)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [selectedCategory, searchQuery])
 
   useEffect(() => {
-    let isMounted = true
+    fetchCategories()
+  }, [fetchCategories])
 
-    async function initialLoad() {
-      try {
-        setLoading(true)
-        const data = await menuApi.getAllMenu()
-        if (Array.isArray(data) && isMounted) {
-          const mapped = data.map((item) => ({
-            id: item.id,
-            name: item.name,
-            category: item.categoryName || item.category || 'General',
-            price: item.price ? item.price / 100 : 0,
-            workloadTier: item.workloadTier === 1 ? 'light' : item.workloadTier === 3 ? 'heavy' : 'medium',
-            prepPoints: item.workloadTier === 1 ? 1 : item.workloadTier === 3 ? 10 : 4,
-            desc: item.desc || '',
-            image: item.imageUrl || null,
-            imageUrl: item.imageUrl || null,
-            imageId: item.imageId || null,
-            isAvailable: item.isAvailable ?? true
-          }))
-          setMenuItems(mapped)
-        }
-      } catch (err) {
-        console.error('Initial menu load error:', err)
-      } finally {
-        if (isMounted) setLoading(false)
-      }
-    }
-
-    initialLoad()
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
-  // Listen for live real-time menu updates over SSE
   useEffect(() => {
-    const handleMenuUpdate = (e) => {
-      const detail = e.detail
-      if (!detail) return
+    fetchMenu(0)
+  }, [selectedCategory, searchQuery])
 
-      if (detail.deleted) {
-        setMenuItems((prev) => prev.filter((m) => m.id !== detail.id))
-      } else {
-        setMenuItems((prev) => {
-          const exists = prev.some((m) => m.id === detail.id)
-          if (!exists) {
-            fetchMenu()
-            return prev
-          }
-          return prev.map((m) =>
-            m.id === detail.id
-              ? {
-                  ...m,
-                  name: detail.name || m.name,
-                  price: detail.price ? detail.price / 100 : m.price,
-                  category: detail.categoryName || detail.category || m.category,
-                  isAvailable: detail.isAvailable ?? m.isAvailable,
-                  image: detail.imageUrl || m.image,
-                  imageUrl: detail.imageUrl || m.imageUrl
-                }
-              : m
-          )
-        })
-      }
-    }
 
-    window.addEventListener('kf:menu-updated', handleMenuUpdate)
-    return () => {
-      window.removeEventListener('kf:menu-updated', handleMenuUpdate)
-    }
-  }, [fetchMenu])
 
-  // Extract categories dynamically
-  const categories = useMemo(() => {
-    const unique = Array.from(new Set(menuItems.map((m) => m.category))).filter(Boolean)
-    return ['All', ...unique]
-  }, [menuItems])
-
-  // Filtered menu list
-  const filteredList = useMemo(() => {
-    return menuItems.filter((item) => {
-      const matchCat = selectedCategory === 'All' || item.category === selectedCategory
-      const matchSearch = searchQuery === '' || item.name.toLowerCase().includes(searchQuery.toLowerCase())
-      return matchCat && matchSearch
-    })
-  }, [menuItems, selectedCategory, searchQuery])
 
   // Open Create Form
   const handleOpenCreate = () => {
@@ -372,7 +320,7 @@ export default function MenuPage() {
               </div>
             ) : layoutMode === 'grid' ? (
               <MenuCardView
-                items={filteredList}
+                items={menuItems}
                 togglingIds={togglingIds}
                 deletingIds={deletingIds}
                 onToggleAvailability={handleToggleAvailability}
@@ -381,7 +329,7 @@ export default function MenuPage() {
               />
             ) : (
               <MenuTableView
-                items={filteredList}
+                items={menuItems}
                 togglingIds={togglingIds}
                 deletingIds={deletingIds}
                 onToggleAvailability={handleToggleAvailability}
@@ -389,8 +337,39 @@ export default function MenuPage() {
                 onDelete={handleDeleteDish}
               />
             )}
+
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="pt-4 flex items-center justify-between border-t border-zinc-200/80 select-none">
+                <span className="text-xs font-medium text-zinc-500">
+                  Showing page <strong className="text-zinc-800">{page + 1}</strong> of <strong className="text-zinc-800">{totalPages}</strong> ({totalCount} items)
+                </span>
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    disabled={page === 0 || loading}
+                    onClick={() => fetchMenu(page - 1)}
+                    className="px-3 py-1.5 bg-white hover:bg-zinc-50 border border-zinc-200/90 rounded-xl text-xs font-semibold text-zinc-700 shadow-2xs transition active:scale-[0.96] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center space-x-1"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span>Previous</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!hasMore || page >= totalPages - 1 || loading}
+                    onClick={() => fetchMenu(page + 1)}
+                    className="px-3 py-1.5 bg-white hover:bg-zinc-50 border border-zinc-200/90 rounded-xl text-xs font-semibold text-zinc-700 shadow-2xs transition active:scale-[0.96] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center space-x-1"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         ) : (
+
           <MenuFormView
             viewMode={viewMode}
             editingItem={editingItem}

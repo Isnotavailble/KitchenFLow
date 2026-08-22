@@ -1,8 +1,10 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { PosContext } from './posContextDef'
 import { menuApi } from '../../menu/api/menuApi'
+import { categoryApi } from '../../category/api/categoryApi'
 import { orderApi } from '../../order/api/orderApi'
 import { useToast } from '../../../hooks/useToast'
+
 
 const READ_NOTIFICATIONS_KEY = 'kf_read_notification_ids'
 
@@ -118,69 +120,58 @@ export function PosProvider({ children }) {
   }, [])
 
 
-  // Fetch live menu items from backend
+  const [categories, setCategories] = useState(['All'])
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const data = await categoryApi.getAllCategories()
+      if (Array.isArray(data)) {
+        setCategories(['All', ...data.map((c) => c.name || c)])
+      }
+    } catch (err) {
+      console.error('Failed to load categories:', err)
+    }
+  }, [])
+
+  // Fetch live menu items from backend matching selected category and search query
   const reloadMenu = useCallback(async () => {
     try {
       setLoadingMenu(true)
-      const data = await menuApi.getAllMenu()
-      if (Array.isArray(data)) {
-        const mapped = data.map((item) => ({
-          id: item.id,
-          name: item.name,
-          category: item.categoryName || item.category || 'General',
-          price: item.price ? item.price / 100 : 0,
-          workloadTier: item.workloadTier === 1 ? 'light' : item.workloadTier === 3 ? 'heavy' : 'medium',
-          prepPoints: item.workloadTier === 1 ? 1 : item.workloadTier === 3 ? 10 : 4,
-          desc: item.desc || '',
-          image: item.imageUrl || null,
-          imageUrl: item.imageUrl || null,
-          imageId: item.imageId || null,
-          isAvailable: item.isAvailable ?? true
-        }))
-        setMenuList(mapped)
-      }
+      const res = await menuApi.getAllMenu({
+        category: selectedCategory,
+        search: searchQuery,
+        page: 0,
+        size: 20
+      })
+      const rawList = Array.isArray(res) ? res : (res?.items || [])
+      const mapped = rawList.map((item) => ({
+        id: item.id,
+        name: item.name,
+        category: item.categoryName || item.category || 'General',
+        price: item.price ? item.price / 100 : 0,
+        workloadTier: item.workloadTier === 1 ? 'light' : item.workloadTier === 3 ? 'heavy' : 'medium',
+        prepPoints: item.workloadTier === 1 ? 1 : item.workloadTier === 3 ? 10 : 4,
+        desc: item.desc || '',
+        image: item.imageUrl || null,
+        imageUrl: item.imageUrl || null,
+        imageId: item.imageId || null,
+        isAvailable: item.isAvailable ?? true
+      }))
+      setMenuList(mapped)
     } catch (err) {
       console.error('Failed to load menu from backend:', err)
     } finally {
       setLoadingMenu(false)
     }
-  }, [])
+  }, [selectedCategory, searchQuery])
 
   useEffect(() => {
-    let isMounted = true
+    fetchCategories()
+  }, [fetchCategories])
 
-    async function initialLoad() {
-      try {
-        const data = await menuApi.getAllMenu()
-        if (Array.isArray(data) && isMounted) {
-          const mapped = data.map((item) => ({
-            id: item.id,
-            name: item.name,
-            category: item.categoryName || item.category || 'General',
-            price: item.price ? item.price / 100 : 0,
-            workloadTier: item.workloadTier === 1 ? 'light' : item.workloadTier === 3 ? 'heavy' : 'medium',
-            prepPoints: item.workloadTier === 1 ? 1 : item.workloadTier === 3 ? 10 : 4,
-            desc: item.desc || '',
-            image: item.imageUrl || null,
-            imageUrl: item.imageUrl || null,
-            imageId: item.imageId || null,
-            isAvailable: item.isAvailable ?? true
-          }))
-          setMenuList(mapped)
-        }
-      } catch (err) {
-        console.error('Initial menu load error:', err)
-      } finally {
-        if (isMounted) setLoadingMenu(false)
-      }
-    }
-
-    initialLoad()
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
+  useEffect(() => {
+    reloadMenu()
+  }, [reloadMenu])
 
   // Listen for live real-time menu updates over SSE
   useEffect(() => {
@@ -220,20 +211,9 @@ export function PosProvider({ children }) {
     }
   }, [reloadMenu])
 
-  // Extract categories dynamically
-  const categories = useMemo(() => {
-    const unique = Array.from(new Set(menuList.map((m) => m.category))).filter(Boolean)
-    return ['All', ...unique]
-  }, [menuList])
+  // Direct server-filtered menu items
+  const filteredMenuItems = menuList
 
-  // Filtered menu items by category and search
-  const filteredMenuItems = useMemo(() => {
-    return menuList.filter((item) => {
-      const matchCat = selectedCategory === 'All' || item.category === selectedCategory
-      const matchSearch = searchQuery === '' || item.name.toLowerCase().includes(searchQuery.toLowerCase())
-      return matchCat && matchSearch
-    })
-  }, [menuList, selectedCategory, searchQuery])
 
   // Cart operations
   const addToCart = (item) => {

@@ -28,8 +28,13 @@ public class MenuController {
     }
 
     @GetMapping
-    public ResponseEntity<?> viewAllMenu(){
-        return ResponseEntity.ok(menuService.getAllMenu());
+    public ResponseEntity<?> viewMenus(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(menuService.getMenus(category, search, page, size));
     }
 
     @GetMapping("/{id}")

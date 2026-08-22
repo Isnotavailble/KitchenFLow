@@ -206,5 +206,55 @@ class MenuServiceTest {
         verify(menuRepo, times(1)).delete(existing);
         verify(cloudinaryService, times(1)).deleteImage("old-id");
     }
+
+    @Test
+    void getMenus_WithFilters_ShouldReturnPaginatedResponse() {
+        CategoryEntity category = new CategoryEntity(1, "Burgers", null);
+        MenuEntity menuEntity = new MenuEntity();
+        menuEntity.setId(1);
+        menuEntity.setName("Cheeseburger");
+        menuEntity.setPrice(1299);
+        menuEntity.setWorkloadTier(2);
+        menuEntity.setCategoryEntity(category);
+        menuEntity.setAvailable(true);
+
+        org.springframework.data.domain.Page<MenuEntity> page = new org.springframework.data.domain.PageImpl<>(
+                List.of(menuEntity),
+                org.springframework.data.domain.PageRequest.of(0, 20),
+                1
+        );
+        when(menuRepo.findByCategoryEntity_NameIgnoreCaseAndNameContainingIgnoreCase(eq("Burgers"), eq("cheese"), any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+
+        com.anyawalker.poskds.features.menu.dtos.PaginatedMenuResponse result = menuService.getMenus("Burgers", "cheese", 0, 20);
+
+        assertNotNull(result);
+        assertEquals(1, result.items().size());
+        assertEquals("Cheeseburger", result.items().get(0).name());
+        assertEquals(1, result.totalCount());
+        assertEquals(0, result.page());
+        assertEquals(20, result.size());
+        verify(menuRepo).findByCategoryEntity_NameIgnoreCaseAndNameContainingIgnoreCase(eq("Burgers"), eq("cheese"), any(org.springframework.data.domain.Pageable.class));
+    }
+
+    @Test
+    void getMenus_WithCategoryOnly_ShouldFilterByCategory() {
+        CategoryEntity category = new CategoryEntity(1, "Burgers", null);
+        MenuEntity menuEntity = new MenuEntity();
+        menuEntity.setId(1);
+        menuEntity.setName("Cheeseburger");
+        menuEntity.setPrice(1299);
+        menuEntity.setCategoryEntity(category);
+
+        org.springframework.data.domain.Page<MenuEntity> page = new org.springframework.data.domain.PageImpl<>(List.of(menuEntity));
+        when(menuRepo.findByCategoryEntity_NameIgnoreCase(eq("Burgers"), any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+
+        com.anyawalker.poskds.features.menu.dtos.PaginatedMenuResponse result = menuService.getMenus("Burgers", null, 0, 20);
+
+        assertNotNull(result);
+        assertEquals(1, result.items().size());
+        verify(menuRepo).findByCategoryEntity_NameIgnoreCase(eq("Burgers"), any(org.springframework.data.domain.Pageable.class));
+    }
 }
+
+
 

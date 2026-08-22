@@ -1,6 +1,7 @@
 package com.anyawalker.poskds.features.menu;
 
 import com.anyawalker.poskds.features.menu.dtos.MenuDto;
+import com.anyawalker.poskds.features.menu.dtos.PaginatedMenuResponse;
 import com.anyawalker.poskds.models.CategoryEntity;
 import com.anyawalker.poskds.models.MenuEntity;
 import com.anyawalker.poskds.repos.CategoryRepo;
@@ -8,6 +9,9 @@ import com.anyawalker.poskds.repos.MenuRepo;
 import com.anyawalker.poskds.features.cloudinary.CloudinaryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -16,6 +20,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Sort;
 
 @Service
 public class MenuService {
@@ -31,12 +37,46 @@ public class MenuService {
         this.cloudinaryService = cloudinaryService;
     }
 
+    public PaginatedMenuResponse getMenus(String category, String search, int page, int size) {
+        String filterCategory = (category != null && !category.isBlank() && !category.equalsIgnoreCase("ALL"))
+                ? category.trim().toLowerCase()
+                : null;
+
+        String filterSearch = (search != null && !search.isBlank())
+                ? search.trim().toLowerCase()
+                : null;
+
+
+        int safePage = Math.max(0, page);
+        int safeSize = size <= 0 ? 20 : size;
+        Pageable pageable = PageRequest.of(safePage, safeSize);
+
+        Page<MenuEntity> menuPage = menuRepo.findMenusByFilters(filterCategory, filterSearch, pageable);
+
+
+        List<MenuDto.Response> items = menuPage.getContent()
+                .stream()
+                .map(MenuDto.Response::fromEntity)
+                .toList();
+
+        return new PaginatedMenuResponse(
+                items,
+                menuPage.getNumber(),
+                menuPage.getSize(),
+                menuPage.getTotalElements(),
+                menuPage.getTotalPages(),
+                menuPage.hasNext()
+        );
+    }
+
+
     public List<MenuDto.Response> getAllMenu() {
         return menuRepo.findAll()
                 .stream()
                 .map(MenuDto.Response::fromEntity)
                 .toList();
     }
+
 
     public MenuDto.Response getMenuById(Integer id) {
         MenuEntity entity = menuRepo.findById(id)

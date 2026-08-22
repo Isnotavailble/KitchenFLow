@@ -1,10 +1,22 @@
 import { apiClient } from '../../../api/apiClient'
 
 export const menuApi = {
-  // GET /api/menu
-  async getAllMenu() {
-    return apiClient.get('/menu')
+  // GET /api/menu?category=...&search=...&page=0&size=20
+  async getAllMenu(params = {}) {
+    const query = new URLSearchParams()
+    if (params.category && params.category !== 'All' && params.category !== 'ALL') {
+      query.append('category', params.category)
+    }
+    if (params.search != null && params.search.trim() !== '') {
+      query.append('search', params.search.trim())
+    }
+    if (params.page != null) query.append('page', params.page)
+    if (params.size != null) query.append('size', params.size)
+
+    const queryString = query.toString()
+    return apiClient.get(`/menu${queryString ? `?${queryString}` : ''}`)
   },
+
 
   // GET /api/menu/{id}
   async getMenuById(id) {
