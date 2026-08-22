@@ -11,6 +11,7 @@ import MenuToolbar from './components/MenuToolbar'
 import MenuCardView from './components/MenuCardView'
 import MenuTableView from './components/MenuTableView'
 import MenuFormView from './components/MenuFormView'
+import DeleteMenuModal from './components/DeleteMenuModal'
 
 export default function MenuPage() {
   const { addToast } = useToast()
@@ -29,10 +30,12 @@ export default function MenuPage() {
   const [viewMode, setViewMode] = useState('list') // 'list' | 'create' | 'edit'
   const [layoutMode, setLayoutMode] = useState('grid') // 'grid' | 'table'
   const [editingItem, setEditingItem] = useState(null)
+  const [itemToDelete, setItemToDelete] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
   const [togglingIds, setTogglingIds] = useState(new Set())
   const [deletingIds, setDeletingIds] = useState(new Set())
+
 
   // Form state
   const [formName, setFormName] = useState('')
@@ -133,14 +136,16 @@ export default function MenuPage() {
   }
 
   // Upload file to Cloudinary
-  const handleFileUpload = async (file) => {
+  const handleFileUpload = async (eOrFile) => {
+    const file = eOrFile?.target?.files ? eOrFile.target.files[0] : eOrFile
     if (!file) return
+
     setIsUploadingPhoto(true)
     try {
       const result = await imageApi.uploadImage(file)
-      if (result && result.imageUrl) {
-        setFormImageUrl(result.imageUrl)
-        setFormImageId(result.imageId || '')
+      if (result && (result.imageUrl || result.secure_url)) {
+        setFormImageUrl(result.imageUrl || result.secure_url)
+        setFormImageId(result.imageId || result.public_id || '')
         addToast('Photo uploaded to Cloudinary!', 'success')
       }
     } catch (err) {
@@ -150,6 +155,7 @@ export default function MenuPage() {
       setIsUploadingPhoto(false)
     }
   }
+
 
   // Handle Form Submit (No optimistic update - wait for real API response)
   const handleSubmitForm = async (e) => {
@@ -231,11 +237,16 @@ export default function MenuPage() {
     }
   }
 
-  // Delete Menu Item (Strict: NO optimistic update, 600ms tactile spinner delay)
-  const handleDeleteDish = async (item) => {
+  // Delete Menu Item Trigger (Opens custom DeleteMenuModal)
+  const handleDeleteDish = (item) => {
     if (deletingIds.has(item.id)) return
-    if (!window.confirm(`Are you sure you want to permanently delete "${item.name}"?`)) return
+    setItemToDelete(item)
+  }
 
+  // Confirm Delete Action from custom modal
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return
+    const item = itemToDelete
     setDeletingIds((prev) => new Set(prev).add(item.id))
     try {
       await Promise.all([
@@ -245,6 +256,7 @@ export default function MenuPage() {
       // Only remove after server confirms deletion
       setMenuItems((prev) => prev.filter((i) => i.id !== item.id))
       addToast(`Deleted "${item.name}"`, 'info')
+      setItemToDelete(null)
     } catch (err) {
       console.error('Delete menu error:', err)
       addToast('Failed to delete menu item', 'warning')
@@ -256,6 +268,7 @@ export default function MenuPage() {
       })
     }
   }
+
 
   return (
     <div className="w-full h-full overflow-y-auto bg-[#ECEEF1] font-sans select-none flex flex-col min-h-0">
@@ -397,7 +410,16 @@ export default function MenuPage() {
         />
       )}
 
+      {/* 4. Custom Delete Menu Item Confirmation Modal */}
+      <DeleteMenuModal
+        isOpen={Boolean(itemToDelete)}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        itemName={itemToDelete?.name || ''}
+        isDeleting={itemToDelete ? deletingIds.has(itemToDelete.id) : false}
+      />
     </div>
   )
 }
+
 
