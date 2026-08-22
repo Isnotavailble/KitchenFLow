@@ -46,9 +46,9 @@ export default function AdminSidebar() {
   const managementNav = [
     { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/menu', label: 'Menu Catalog', icon: UtensilsCrossed },
-    { to: '/admin/accounts', label: 'Staff & Accounts', icon: Users },
-    { to: '/admin/reports', label: 'Reports & Sales', icon: BarChart3 }
+    { to: '/admin/accounts', label: 'Staff & Accounts', icon: Users }
   ]
+
 
   const liveStations = [
     { to: '/pos', label: 'Cashier', icon: Store },

@@ -6,9 +6,10 @@ import MenuPage from '../features/menu'
 import {
   AdminLayout,
   DashboardPage,
-  AccountsPage,
-  ReportsPage
+  AccountsPage
 } from '../features/admin'
+import CustomerPreOrderPage from '../features/preorder/pages/CustomerPreOrderPage'
+
 import NotFoundPage from '../components/NotFoundPage'
 import ProtectedRoute from './ProtectedRoute'
 import { useAuth } from '../features/auth/hooks/useAuth'
@@ -26,7 +27,7 @@ function IndexRedirect() {
   }
 
   if (user?.role === 'ROLE_ADMIN') {
-    return <Navigate to="/menu" replace />
+    return <Navigate to="/admin/dashboard" replace />
   }
 
   return <Navigate to="/pos" replace />
@@ -38,8 +39,10 @@ export default function AppRoutes() {
 
   return (
     <Routes>
-      {/* Public Guest Route */}
+      {/* Public Guest Routes */}
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/pre-order" element={<CustomerPreOrderPage />} />
+
 
       {/* When logged in as Owner (ROLE_ADMIN): ALL views preserve the persistent Admin Sidebar */}
       {isAdmin ? (
@@ -50,14 +53,14 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         >
+          <Route path="/admin/dashboard" element={<DashboardPage />} />
           <Route path="/menu" element={<MenuPage />} />
           <Route path="/pos" element={<PosPage />} />
           <Route path="/kds" element={<KdsPage />} />
-          <Route path="/admin/dashboard" element={<DashboardPage />} />
           <Route path="/admin/accounts" element={<AccountsPage />} />
-          <Route path="/admin/reports" element={<ReportsPage />} />
         </Route>
       ) : (
+
         <>
           {/* Standalone Cashier POS Station Route */}
           <Route
