@@ -72,7 +72,7 @@ public class AuthConfig {
                         .requestMatchers(HttpMethod.GET, "/api/pre-orders/**")
                         .permitAll()
 
-                        .requestMatchers("/api/orders/**")
+                        .requestMatchers("/api/orders", "/api/orders/**")
                         .hasAnyAuthority("ROLE_CASHIER","ROLE_ADMIN","ROLE_CHEF")
                         .anyRequest().authenticated()
                 )

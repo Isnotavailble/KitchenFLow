@@ -1,8 +1,31 @@
-import React, { useRef, useEffect } from 'react'
+import { useEffect, forwardRef, useCallback } from 'react'
+import { VirtuosoGrid } from 'react-virtuoso'
 import { useKds } from './hooks/useKds'
 import KdsHeader from './components/KdsHeader'
 import KdsFilterRow from './components/KdsFilterRow'
 import TicketCard from './components/TicketCard'
+
+const gridComponents = {
+  List: forwardRef(({ style, children, ...props }, ref) => (
+    <div
+      ref={ref}
+      {...props}
+      style={style}
+      className="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-4 sm:gap-5 pb-8 px-6"
+    >
+      {children}
+    </div>
+  )),
+  Item: forwardRef(({ children, ...props }, ref) => (
+    <div ref={ref} {...props}>
+      {children}
+    </div>
+  )),
+  Footer: () => null
+}
+
+gridComponents.List.displayName = 'VirtuosoGridList'
+gridComponents.Item.displayName = 'VirtuosoGridItem'
 
 export default function KdsPage() {
   const {
@@ -10,30 +33,25 @@ export default function KdsPage() {
     loading,
     loadMore,
     hasMore,
+    refreshOrders,
     searchOrderNumber,
     menuFilter,
     setSearchOrderNumber,
     setMenuFilter
   } = useKds()
 
-  const sentinelRef = useRef(null)
+  // Refresh live orders whenever entering the KDS page
+  useEffect(() => {
+    refreshOrders?.()
+  }, [refreshOrders])
+
   const hasActiveFilters = searchOrderNumber !== '' || menuFilter !== 'ALL'
 
-  // Infinite scroll observer for loading subsequent 20-order pages
-  useEffect(() => {
-    if (!sentinelRef.current || !hasMore || loading) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading) {
-          loadMore()
-        }
-      },
-      { rootMargin: '200px' }
-    )
-
-    observer.observe(sentinelRef.current)
-    return () => observer.disconnect()
+  // Virtuoso prefetch handler: triggers when near the end (10-item threshold / overscan)
+  const handleEndReached = useCallback(() => {
+    if (hasMore && !loading) {
+      loadMore()
+    }
   }, [hasMore, loading, loadMore])
 
   return (
@@ -44,8 +62,8 @@ export default function KdsPage() {
       {/* Filter Row with Tabs, Menu Dropdown, and Order Number Search */}
       <KdsFilterRow />
 
-      {/* Main Ticket Grid with Equal Card Heights and Internal Scroll */}
-      <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 pb-8">
+      {/* Main Ticket Grid with VirtuosoGrid virtualization */}
+      <main className="flex-1 h-full overflow-hidden">
         {loading && orders.length === 0 ? (
           <div className="flex-1 flex items-center justify-center h-80 text-zinc-500 text-xs font-mono">
             Loading KitchenFlow KDS...
@@ -73,22 +91,19 @@ export default function KdsPage() {
             )}
           </div>
         ) : (
-          <div>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-4 sm:gap-5">
-              {orders.map((ticket) => (
-                <TicketCard key={ticket.id} ticket={ticket} />
-              ))}
-            </div>
-
-            {/* Bottom infinite scroll sentinel */}
-            {hasMore && (
-              <div ref={sentinelRef} className="py-6 text-center text-xs text-zinc-400 font-mono">
-                Loading more orders (Page Size 20)...
-              </div>
+          <VirtuosoGrid
+            style={{ height: '100%' }}
+            data={orders}
+            endReached={handleEndReached}
+            overscan={10}
+            components={gridComponents}
+            itemContent={(_index, ticket) => (
+              <TicketCard key={ticket.id} ticket={ticket} />
             )}
-          </div>
+          />
         )}
       </main>
     </div>
   )
 }
+

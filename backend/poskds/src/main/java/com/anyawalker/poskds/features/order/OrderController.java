@@ -1,10 +1,7 @@
 package com.anyawalker.poskds.features.order;
 
 import com.anyawalker.poskds.features.eventlistener.EventEmitterService;
-import com.anyawalker.poskds.features.order.dtos.OrderItemUpdateRequest;
-import com.anyawalker.poskds.features.order.dtos.OrderRequest;
-import com.anyawalker.poskds.features.order.dtos.OrderResponse;
-import com.anyawalker.poskds.features.order.dtos.OrderStatusRequest;
+import com.anyawalker.poskds.features.order.dtos.*;
 import com.anyawalker.poskds.features.order.exceptions.AlreadyUpdatedException;
 import com.anyawalker.poskds.features.order.exceptions.InValidOrderStatusException;
 import com.anyawalker.poskds.features.order.exceptions.OrderFailureException;
@@ -33,10 +30,29 @@ public class OrderController {
         this.eventEmitterService = eventEmitterService;
     }
 
+    @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_CHEF','ROLE_ADMIN')")
+    public ResponseEntity<PaginatedOrderResponse> getOrders(
+            @RequestParam(required = false, defaultValue = "All") String status,
+            @RequestParam(required = false) Integer orderNumber,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(orderService.getOrders(status, orderNumber, category, page, size));
+    }
+
+    @GetMapping("/completed_pickups")
+    @PreAuthorize("hasAnyAuthority('ROLE_CASHIER','ROLE_ADMIN','ROLE_CHEF')")
+    public ResponseEntity<List<OrderResponse>> getCompletedPickups() {
+        return ResponseEntity.ok(orderService.getCompletedPickupsToday());
+    }
+
     @GetMapping("/view_orders")
     public ResponseEntity<?> viewAllOrders(){
         return ResponseEntity.ok(orderService.viewAllOrders());
     }
+
     // frontend ---> backend
     //cashier --> backend ---> chef
     @PostMapping("/create_order")

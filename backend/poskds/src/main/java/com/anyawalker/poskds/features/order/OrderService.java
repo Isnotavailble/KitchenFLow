@@ -13,6 +13,10 @@ import com.anyawalker.poskds.models.UserEntity;
 import com.anyawalker.poskds.repos.MenuRepo;
 import com.anyawalker.poskds.repos.OrderRepo;
 import com.anyawalker.poskds.repos.UserRepo;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
-
+    private final Set<String> ORDERTYPE = Set.of("takeaway","dine_in");
     private final OrderRepo orderRepo;
     private final UserRepo userRepo;
     private final MenuRepo menuRepo;
@@ -48,6 +52,80 @@ public class OrderService {
                 .toList();
     }
 
+    public PaginatedOrderResponse getOrders(String status, Integer orderNumber, String category, int page, int size) {
+        LocalDate today = LocalDate.now();
+        LocalDateTime startTime = today.atStartOfDay();
+        LocalDateTime endTime = today.plusDays(1).atStartOfDay();
+
+        String dbStatus;
+        LocalDateTime priorityCutoff = null;
+
+        if (status == null || status.isBlank() || status.equalsIgnoreCase("All") || status.equalsIgnoreCase("Active")) {
+            dbStatus = OrderStatus.WAITING.getValue();
+        } else if (status.equalsIgnoreCase("Waiting")) {
+            dbStatus = OrderStatus.WAITING.getValue();
+        } else if (status.equalsIgnoreCase("Priority")) {
+            dbStatus = OrderStatus.WAITING.getValue();
+            priorityCutoff = LocalDateTime.now().minusMinutes(10);
+        } else if (status.equalsIgnoreCase("Complete") || status.equalsIgnoreCase("Completed")) {
+            dbStatus = OrderStatus.COMPLETED.getValue();
+        } else {
+            dbStatus = status.trim().toLowerCase();
+        }
+
+        String filterCategory = (category != null && !category.isBlank() && !category.equalsIgnoreCase("ALL"))
+                ? category.trim()
+                : null;
+
+        Sort sort;
+        if (status != null && (status.equalsIgnoreCase("Complete") || status.equalsIgnoreCase("Completed"))) {
+            sort = Sort.by(Sort.Direction.DESC, "updatedAt").and(Sort.by(Sort.Direction.DESC, "createdAt"));
+        } else {
+            sort = Sort.by(Sort.Direction.ASC, "createdAt");
+        }
+
+        int pageSize = size > 0 ? size : 20;
+        int pageIndex = Math.max(0, page);
+        Pageable pageable = PageRequest.of(pageIndex, pageSize, sort);
+
+        String catLower = filterCategory != null ? filterCategory.toLowerCase() : null;
+
+        Page<OrderEntity> orderPage = orderRepo.findOrdersByFilters(
+                startTime,
+                endTime,
+                dbStatus,
+                priorityCutoff,
+                orderNumber,
+                catLower,
+                pageable
+        );
+
+        List<OrderResponse> items = orderPage.getContent()
+                .stream()
+                .map(order -> orderMapper.toResponseDTO(order, ""))
+                .toList();
+
+        return new PaginatedOrderResponse(
+                items,
+                orderPage.getNumber(),
+                orderPage.getSize(),
+                orderPage.getTotalElements(),
+                orderPage.getTotalPages(),
+                orderPage.hasNext()
+        );
+    }
+
+    public List<OrderResponse> getCompletedPickupsToday() {
+        LocalDate today = LocalDate.now();
+        LocalDateTime startTime = today.atStartOfDay();
+        LocalDateTime endTime = today.plusDays(1).atStartOfDay();
+
+        List<OrderEntity> completedOrders = orderRepo.findTodayCompletedOrders(startTime, endTime);
+        return completedOrders.stream()
+                .map(order -> orderMapper.toResponseDTO(order, ""))
+                .toList();
+    }
+
     @Transactional
     public OrderResponse createOrder(OrderRequest orderRequest, Long userId) {
 
@@ -59,6 +137,13 @@ public class OrderService {
         //check null before any db call
         if (nonNullOrderItemList.isEmpty())
             throw new OrderFailureException("Order has no order items.");
+
+        if (orderRequest.orderType() == null || orderRequest.orderType().isBlank())
+            throw new OrderFailureException("Order type must be defined");
+
+        if (!ORDERTYPE.contains(orderRequest.orderType()))
+            throw new OrderFailureException("Order type %s is not a valid order type".formatted(orderRequest.orderType()));
+
 
         UserEntity orderCreator = userRepo.findById(userId)
                 .orElseThrow(() -> new OrderFailureException("Could not create the order due to invalid user id"));
@@ -106,6 +191,7 @@ public class OrderService {
         order.setTotalPrice(totalPriceAfterTax);
         order.setOrderNumber(generateOrderNumber());
         order.setOrderWorkloadTier(orderWorkloadTier);
+        order.setOrderType(orderRequest.orderType());
         OrderEntity savedOrder = orderRepo.save(order);
 
         return orderMapper.toResponseDTO(savedOrder,"order created successfully");
@@ -258,6 +344,7 @@ public class OrderService {
 
         return OrderWorkloadTier.HEAVY.getValue();
     }
+
     private Map<Integer, MenuEntity> validateAndFetchAvailableMenus(List<Integer> menuIds) {
         List<MenuEntity> menuList = menuRepo.findAllById(menuIds);
         Map<Integer, MenuEntity> menuEntityMap = menuList.stream()

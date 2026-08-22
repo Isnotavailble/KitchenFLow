@@ -1,8 +1,55 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { PosContext } from './posContextDef'
 import { menuApi } from '../../menu/api/menuApi'
 import { orderApi } from '../../order/api/orderApi'
 import { useToast } from '../../../hooks/useToast'
+
+const READ_NOTIFICATIONS_KEY = 'kf_read_notification_ids'
+
+function getReadNotificationIds() {
+  try {
+    const raw = localStorage.getItem(READ_NOTIFICATIONS_KEY)
+    return raw ? new Set(JSON.parse(raw)) : new Set()
+  } catch {
+    return new Set()
+  }
+}
+
+function saveReadNotificationIds(idsSet) {
+  try {
+    localStorage.setItem(READ_NOTIFICATIONS_KEY, JSON.stringify(Array.from(idsSet)))
+  } catch {
+    // ignore
+  }
+}
+
+const mapOrderToTicket = (o) => {
+  const isCompleted = o.status === 'completed' || o.status === 'COMPLETED'
+  const isCancelled = o.status === 'cancelled' || o.status === 'CANCELLED'
+
+  return {
+    id: o.id || o.orderNumber,
+    rawId: o.id,
+    order_number: `#${o.orderNumber || o.id}`,
+    orderNumberInt: o.orderNumber || o.id,
+    orderType: o.orderType || 'takeaway',
+    created_at: o.createdAt || o.created_at || null,
+    completed_at: isCompleted ? (o.updatedAt || o.updated_at || null) : null,
+    cancelled_at: isCancelled ? (o.updatedAt || o.updated_at || null) : null,
+    status: isCompleted ? 'Completed' : isCancelled ? 'Cancelled' : 'Waiting',
+    workloadTier: o.workloadTier === '1' || o.workloadTier === 1 || o.workloadTier === 'light' ? 'light' :
+                  o.workloadTier === '3' || o.workloadTier === 3 || o.workloadTier === 'heavy' ? 'heavy' : 'medium',
+    items: (o.orderItems || []).map((i) => ({
+      name: i.menuName || 'Item',
+      category: i.categoryName || i.category || 'General',
+      qty: i.quantity || 1,
+      desc: '',
+      price: i.unitPrice ? i.unitPrice / 100 : 0,
+      image: i.imageUrl || i.image || i.menuImageUrl || null,
+      itemCustomization: i.itemNote || null
+    }))
+  }
+}
 
 export function PosProvider({ children }) {
   const { addToast } = useToast()
@@ -17,6 +64,59 @@ export function PosProvider({ children }) {
   const [recentOrders, setRecentOrders] = useState([])
   const [activeReceipt, setActiveReceipt] = useState(null)
   const [isPreOrderModalOpen, setIsPreOrderModalOpen] = useState(false)
+  const [completedPickupQueue, setCompletedPickupQueue] = useState([])
+
+  const reloadCompletedPickups = useCallback(async () => {
+    try {
+      const rawList = await orderApi.getCompletedPickups()
+      const mapped = Array.isArray(rawList) ? rawList.map(mapOrderToTicket) : []
+      const readSet = getReadNotificationIds()
+      const unread = mapped.filter((o) => !readSet.has(o.id) && !readSet.has(String(o.id)))
+      setCompletedPickupQueue(unread)
+    } catch (err) {
+      console.error('Failed to load completed pickups:', err)
+    }
+  }, [])
+
+  const markHandedOver = useCallback((orderId) => {
+    const readSet = getReadNotificationIds()
+    readSet.add(orderId)
+    readSet.add(String(orderId))
+    saveReadNotificationIds(readSet)
+    setCompletedPickupQueue((prev) => prev.filter((o) => o.id !== orderId && String(o.id) !== String(orderId)))
+  }, [])
+
+  const markAllHandedOver = useCallback(() => {
+    const readSet = getReadNotificationIds()
+    completedPickupQueue.forEach((o) => {
+      readSet.add(o.id)
+      readSet.add(String(o.id))
+    })
+    saveReadNotificationIds(readSet)
+    setCompletedPickupQueue([])
+  }, [completedPickupQueue])
+
+  // Listen to Global Real-Time SSE Order Events for Cashier Pickup Notifications
+  useEffect(() => {
+    const handleOrderUpdated = (e) => {
+      const rawOrder = e.detail
+      if (!rawOrder) return
+      const ticket = mapOrderToTicket(rawOrder)
+
+      if (ticket.status === 'Completed') {
+        const readSet = getReadNotificationIds()
+        if (!readSet.has(ticket.id) && !readSet.has(String(ticket.id))) {
+          setCompletedPickupQueue((prev) => [ticket, ...prev.filter((o) => o.id !== ticket.id)])
+        }
+      } else if (ticket.status === 'Cancelled') {
+        setCompletedPickupQueue((prev) => prev.filter((o) => o.id !== ticket.id))
+      }
+    }
+
+    window.addEventListener('kf:order-updated', handleOrderUpdated)
+    return () => window.removeEventListener('kf:order-updated', handleOrderUpdated)
+  }, [])
+
 
   // Fetch live menu items from backend
   const reloadMenu = useCallback(async () => {
@@ -196,7 +296,10 @@ export function PosProvider({ children }) {
         itemNote: i.note ? i.note.trim() : null
       }))
 
-      const backendResponse = await orderApi.createOrder({ orderItems })
+      const backendResponse = await orderApi.createOrder({
+        orderType: orderType === 'takeaway' ? 'takeaway' : 'dine_in',
+        orderItems
+      })
       const orderNum = backendResponse?.orderNumber || Math.floor(1000 + Math.random() * 9000)
 
       const totalPoints = cart.reduce((sum, item) => sum + (item.prepPoints || 1) * item.qty, 0)
@@ -291,7 +394,11 @@ export function PosProvider({ children }) {
     setActiveReceipt,
     isPreOrderModalOpen,
     setIsPreOrderModalOpen,
-    loadPreOrder
+    loadPreOrder,
+    completedPickupQueue,
+    reloadCompletedPickups,
+    markHandedOver,
+    markAllHandedOver
   }
 
   return (

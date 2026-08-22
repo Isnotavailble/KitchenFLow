@@ -1,16 +1,49 @@
 import { useCallback } from 'react'
 
+let sharedAudioCtx = null
+
+function getAudioContext() {
+  if (typeof window === 'undefined') return null
+
+  if (!sharedAudioCtx) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext
+    if (AudioCtx) {
+      sharedAudioCtx = new AudioCtx()
+    }
+  }
+
+  return sharedAudioCtx
+}
+
+// Global unlock listener on first user interaction (click / keypress / touch)
+if (typeof window !== 'undefined') {
+  const unlockAudio = () => {
+    const ctx = getAudioContext()
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().catch(() => {})
+    }
+  }
+
+  window.addEventListener('click', unlockAudio, { passive: true })
+  window.addEventListener('touchstart', unlockAudio, { passive: true })
+  window.addEventListener('keydown', unlockAudio, { passive: true })
+}
+
 /**
  * Web Audio API synthesizer for kitchen notifications.
  * Plays high-clarity bell frequencies without external audio file dependencies.
  */
-export function playKitchenChimeAudio(soundEnabled = true) {
+export async function playKitchenChimeAudio(soundEnabled = true) {
   if (!soundEnabled) return
 
   try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext
-    if (!AudioCtx) return
-    const ctx = new AudioCtx()
+    const ctx = getAudioContext()
+    if (!ctx) return
+
+    if (ctx.state === 'suspended') {
+      await ctx.resume().catch(() => {})
+    }
+
     const now = ctx.currentTime
 
     const osc1 = ctx.createOscillator()
@@ -23,8 +56,8 @@ export function playKitchenChimeAudio(soundEnabled = true) {
     osc1.frequency.setValueAtTime(587.33, now) // D5
     osc2.frequency.setValueAtTime(880, now + 0.08) // A5
 
-    gain.gain.setValueAtTime(0.12, now)
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5)
+    gain.gain.setValueAtTime(0.2, now)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6)
 
     osc1.connect(gain)
     osc2.connect(gain)
@@ -32,8 +65,8 @@ export function playKitchenChimeAudio(soundEnabled = true) {
 
     osc1.start(now)
     osc2.start(now + 0.08)
-    osc1.stop(now + 0.5)
-    osc2.stop(now + 0.5)
+    osc1.stop(now + 0.6)
+    osc2.stop(now + 0.6)
   } catch {
     // Audio playback prevented or unavailable in browser environment
   }
@@ -46,3 +79,4 @@ export function useKitchenChime() {
 
   return { playChime }
 }
+

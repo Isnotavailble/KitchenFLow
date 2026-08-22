@@ -1,6 +1,5 @@
-import React from 'react'
 import { Bell, X, CheckCircle2 } from 'lucide-react'
-import { useKds } from '../../kds/hooks/useKds'
+import { usePos } from '../hooks/usePos'
 import { useElapsedTime } from '../../kds/hooks/useElapsedTime'
 
 function NotificationItem({ order, onMarkAsRead }) {
@@ -12,7 +11,7 @@ function NotificationItem({ order, onMarkAsRead }) {
       <div className="flex items-start min-w-0 flex-1">
         <div className="min-w-0 flex-1">
           <p className="text-xs text-zinc-800 leading-snug font-medium">
-            <strong className="text-zinc-900 font-bold font-sans">{order.order_number}</strong>{' '}
+            Order number <strong className="text-zinc-900 font-bold font-sans">{order.order_number}</strong>{' '}
             <span className="text-zinc-500">({isTakeaway ? 'Takeaway' : 'Dine-In'})</span>{' '}
             has been completed.
           </p>
@@ -35,7 +34,7 @@ function NotificationItem({ order, onMarkAsRead }) {
 }
 
 export default function ReadyPickupModal({ isOpen, onClose }) {
-  const { completedPickupQueue, markHandedOver, markAllHandedOver } = useKds() || {}
+  const { completedPickupQueue, markHandedOver, markAllHandedOver } = usePos() || {}
 
   if (!isOpen) return null
 
@@ -47,9 +46,9 @@ export default function ReadyPickupModal({ isOpen, onClose }) {
       <div className="fixed inset-0" onClick={onClose} />
 
       {/* Floating Notifications Popover */}
-      <div className="relative mt-12 w-full max-w-sm sm:max-w-md bg-white border border-zinc-200/90 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-top-2 duration-150 z-10 flex flex-col max-h-[80vh]">
-        {/* Header */}
-        <div className="px-4 py-3 border-b border-zinc-100 flex items-center justify-between shrink-0 bg-white">
+      <div className="relative mt-12 w-full max-w-sm sm:max-w-md bg-white border border-zinc-200/90 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-top-2 duration-150 z-10 flex flex-col max-h-[460px]">
+        {/* Sticky Header */}
+        <div className="sticky top-0 px-4 py-3 border-b border-zinc-100 flex items-center justify-between shrink-0 bg-white/95 backdrop-blur-xs z-10">
           <div className="flex items-center space-x-2">
             <Bell className="w-4 h-4 text-zinc-800" />
             <h2 className="text-sm font-bold text-zinc-900 leading-none">
@@ -83,8 +82,8 @@ export default function ReadyPickupModal({ isOpen, onClose }) {
           </div>
         </div>
 
-        {/* Notifications List */}
-        <div className="flex-1 overflow-y-auto min-h-0 divide-y divide-zinc-100">
+        {/* Scrollable Notifications List */}
+        <div className="flex-1 overflow-y-auto overscroll-contain min-h-0 divide-y divide-zinc-100">
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
               <div className="w-10 h-10 rounded-2xl bg-zinc-50 border border-zinc-100 flex items-center justify-center text-zinc-300 mb-2">

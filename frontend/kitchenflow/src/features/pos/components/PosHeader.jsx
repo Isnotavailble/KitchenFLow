@@ -1,16 +1,14 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { QrCode, LogOut, ChefHat, User, Bell, UtensilsCrossed } from 'lucide-react'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { usePos } from '../hooks/usePos'
-import { useKds } from '../../kds/hooks/useKds'
 import ReadyPickupModal from './ReadyPickupModal'
 import pageLogo from '../../../assets/page_logo.png'
 
 export default function PosHeader() {
   const { user, logout } = useAuth()
-  const { setIsPreOrderModalOpen } = usePos()
-  const { completedPickupQueue } = useKds() || {}
+  const { setIsPreOrderModalOpen, completedPickupQueue } = usePos()
   const [isPickupOpen, setIsPickupOpen] = useState(false)
   const navigate = useNavigate()
 
