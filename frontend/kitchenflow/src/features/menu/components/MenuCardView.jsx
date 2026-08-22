@@ -124,19 +124,28 @@ export default function MenuCardView({
                   <button
                     type="button"
                     onClick={() => onToggleAvailability(item)}
-                    disabled={isToggling || isDeleting}
+                    disabled={isToggling || isDeleting || item.isCategoryDeleted}
                     className={`h-8 px-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-[0.96] flex items-center justify-center space-x-1 shadow-xs whitespace-nowrap shrink-0 ${
-                      isToggling || isDeleting ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+                      isToggling || isDeleting || item.isCategoryDeleted ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                     } ${
                       item.isAvailable
                         ? 'bg-[#FF5C39] hover:bg-[#F04D28] text-white'
                         : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-200/90'
                     }`}
-                    title={item.isAvailable ? 'Click to make unavailable' : 'Click to make available'}
+                    title={
+                      item.isCategoryDeleted
+                        ? 'Category is disabled'
+                        : item.isAvailable
+                        ? 'Click to make unavailable'
+                        : 'Click to make available'
+                    }
                   >
                     {isToggling && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
                     <span>{item.isAvailable ? 'Disable' : 'Enable'}</span>
                   </button>
+
+
+
 
 
                   {/* Edit Button */}

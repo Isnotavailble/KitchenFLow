@@ -39,9 +39,9 @@ export default function MenuToolbar({
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 select-none shrink-0">
-      {/* Category Filter Pills */}
-      <div className="flex items-center space-x-1.5 overflow-x-auto no-scrollbar scroll-smooth">
+    <div className="flex items-center justify-between gap-3 select-none shrink-0 w-full">
+      {/* Category Filter Pills (Horizontal Scroll on X-axis, never wraps) */}
+      <div className="flex items-center space-x-1.5 overflow-x-auto no-scrollbar scroll-smooth min-w-0 flex-1 py-1">
         {categories.map((cat) => {
           const isActive = selectedCategory === cat
           return (
@@ -62,8 +62,8 @@ export default function MenuToolbar({
       </div>
 
       {/* Dedicated Search Form with Button */}
-      <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2 w-full sm:w-auto">
-        <div className="relative flex items-center flex-1 sm:w-60">
+      <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2 shrink-0">
+        <div className="relative flex items-center w-48 sm:w-60">
           <div className="absolute left-3 pointer-events-none text-zinc-400">
             <Search className="w-3.5 h-3.5" />
           </div>
@@ -96,4 +96,5 @@ export default function MenuToolbar({
     </div>
   )
 }
+
 

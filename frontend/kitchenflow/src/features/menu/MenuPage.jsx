@@ -1,17 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Loader2, UtensilsCrossed, Plus, LayoutGrid, List as ListIcon, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Loader2, UtensilsCrossed, Plus, LayoutGrid, List as ListIcon, ChevronLeft, ChevronRight, Tag } from 'lucide-react'
+
 import { menuApi } from './api/menuApi'
 import { categoryApi } from '../category/api/categoryApi'
 import { imageApi } from './api/imageApi'
 import { useToast } from '../../hooks/useToast'
 import { AdminPageHeader } from '../admin'
 
-
 import MenuToolbar from './components/MenuToolbar'
 import MenuCardView from './components/MenuCardView'
 import MenuTableView from './components/MenuTableView'
 import MenuFormView from './components/MenuFormView'
 import DeleteMenuModal from './components/DeleteMenuModal'
+import CategoryManagerModal from '../category/components/CategoryManagerModal'
 
 export default function MenuPage() {
   const { addToast } = useToast()
@@ -31,10 +32,12 @@ export default function MenuPage() {
   const [layoutMode, setLayoutMode] = useState('grid') // 'grid' | 'table'
   const [editingItem, setEditingItem] = useState(null)
   const [itemToDelete, setItemToDelete] = useState(null)
+  const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
   const [togglingIds, setTogglingIds] = useState(new Set())
   const [deletingIds, setDeletingIds] = useState(new Set())
+
 
 
   // Form state
@@ -61,9 +64,11 @@ export default function MenuPage() {
   }, [])
 
   // Load menu items with pagination and filters
-  const fetchMenu = useCallback(async (targetPage = 0) => {
+  const fetchMenu = useCallback(async (targetPage = 0, showLoading = true) => {
     try {
-      setLoading(true)
+      if (showLoading) {
+        setLoading(true)
+      }
       const res = await menuApi.getAllMenu({
         category: selectedCategory,
         search: searchQuery,
@@ -76,6 +81,7 @@ export default function MenuPage() {
         name: item.name,
         category: item.categoryName || item.category || 'General',
         categoryId: item.categoryId || null,
+        isCategoryDeleted: item.isCategoryDeleted ?? false,
         price: item.price ? item.price / 100 : 0,
         workloadTier: item.workloadTier === 1 ? 'light' : item.workloadTier === 3 ? 'heavy' : 'medium',
         prepPoints: item.workloadTier === 1 ? 1 : item.workloadTier === 3 ? 10 : 4,
@@ -85,6 +91,7 @@ export default function MenuPage() {
         imageId: item.imageId || null,
         isAvailable: item.isAvailable ?? true
       }))
+
       setMenuItems(mapped)
       setTotalCount(res?.totalCount ?? mapped.length)
       setTotalPages(res?.totalPages ?? 1)
@@ -96,6 +103,7 @@ export default function MenuPage() {
       setLoading(false)
     }
   }, [selectedCategory, searchQuery])
+
 
   useEffect(() => {
     fetchCategories()
@@ -214,6 +222,11 @@ export default function MenuPage() {
     if (togglingIds.has(item.id)) return // Prevent duplicate requests
     const newValue = !item.isAvailable
 
+    if (newValue && item.isCategoryDeleted) {
+      addToast(`Cannot enable "${item.name}" because its category is disabled`, 'warning')
+      return
+    }
+
     setTogglingIds((prev) => new Set(prev).add(item.id))
     try {
       const [updatedResponse] = await Promise.all([
@@ -227,7 +240,7 @@ export default function MenuPage() {
       addToast(`"${item.name}" is now ${newValue ? 'Available' : 'Unavailable'}`, 'info')
     } catch (err) {
       console.error('Availability toggle error:', err)
-      addToast('Failed to toggle availability on server', 'warning')
+      addToast(err?.response?.data?.message || err?.message || 'Failed to toggle availability on server', 'warning')
     } finally {
       setTogglingIds((prev) => {
         const next = new Set(prev)
@@ -236,6 +249,7 @@ export default function MenuPage() {
       })
     }
   }
+
 
   // Delete Menu Item Trigger (Opens custom DeleteMenuModal)
   const handleDeleteDish = (item) => {
@@ -302,6 +316,18 @@ export default function MenuPage() {
           </button>
         </div>
 
+        {/* Manage Categories Button */}
+        <button
+          type="button"
+          onClick={() => setIsCategoryManagerOpen(true)}
+          className="h-8 px-3.5 bg-white hover:bg-zinc-50 border border-zinc-200/90 text-zinc-700 hover:text-zinc-900 text-xs font-bold rounded-xl shadow-2xs transition active:scale-[0.96] flex items-center space-x-1.5 cursor-pointer"
+          title="Manage Menu Categories"
+        >
+          <Tag className="w-3.5 h-3.5 text-[#FF5C39]" />
+          <span>Categories</span>
+        </button>
+
+
         {/* Create New Menu Button */}
         <button
           type="button"
@@ -312,6 +338,7 @@ export default function MenuPage() {
           <span>Create Menu</span>
         </button>
       </AdminPageHeader>
+
 
       {/* 2. Main Page Area (Always Rendered Catalog) */}
       <div className="p-5 sm:p-6 w-full max-w-7xl mx-auto space-y-4 pb-20 flex-1">
@@ -394,7 +421,9 @@ export default function MenuPage() {
           formCategory={formCategory}
           setFormCategory={setFormCategory}
           categories={categories}
+          categoryList={categoryList}
           formTier={formTier}
+
           setFormTier={setFormTier}
           formImageUrl={formImageUrl}
           setFormImageUrl={setFormImageUrl}
@@ -418,8 +447,20 @@ export default function MenuPage() {
         itemName={itemToDelete?.name || ''}
         isDeleting={itemToDelete ? deletingIds.has(itemToDelete.id) : false}
       />
+
+      {/* 5. Floating Category Manager Modal */}
+      <CategoryManagerModal
+        isOpen={isCategoryManagerOpen}
+        onClose={() => setIsCategoryManagerOpen(false)}
+        onCategoriesUpdated={() => {
+          fetchCategories()
+          fetchMenu(page, false)
+        }}
+      />
+
     </div>
   )
 }
+
 
 

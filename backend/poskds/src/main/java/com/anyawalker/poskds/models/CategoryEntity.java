@@ -14,6 +14,9 @@ public class CategoryEntity {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
+    @Column(name = "is_deleted",nullable = false)
+    private boolean isDeleted = false;
+
     @OneToMany(mappedBy = "categoryEntity", fetch = FetchType.LAZY)
     private List<MenuEntity> menuEntities;
 
@@ -47,5 +50,13 @@ public class CategoryEntity {
 
     public void setMenuEntities(List<MenuEntity> menuEntities) {
         this.menuEntities = menuEntities;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
     }
 }

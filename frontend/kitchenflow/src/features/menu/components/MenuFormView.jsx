@@ -11,7 +11,9 @@ export default function MenuFormView({
   formCategory,
   setFormCategory,
   categories = [],
+  categoryList = [],
   formTier,
+
   setFormTier,
   formImageUrl,
   setFormImageUrl,
@@ -216,29 +218,45 @@ export default function MenuFormView({
           </div>
 
           {/* Availability Switch */}
-          <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-zinc-200/80">
-            <div>
-              <span className="text-xs font-bold text-zinc-800 block">
-                Available for Ordering
-              </span>
-              <span className="text-[11px] text-zinc-400 block font-medium">
-                When turned off, item appears as "Unavailable" on POS
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setFormIsAvailable(!formIsAvailable)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition cursor-pointer ${
-                formIsAvailable ? 'bg-emerald-500' : 'bg-zinc-300'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                  formIsAvailable ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
+          {(() => {
+            const selectedCat = categoryList.find((c) => c.name === formCategory || c.id === formCategory)
+            const isCategoryInactive = selectedCat?.isDeleted ?? false
+
+            return (
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-zinc-200/80">
+                <div>
+                  <span className="text-xs font-bold text-zinc-800 block">
+                    Available for Ordering
+                  </span>
+                  <span className="text-[11px] text-zinc-400 block font-medium">
+                    {isCategoryInactive
+                      ? 'Category is disabled. Item cannot be made available until category is active.'
+                      : 'When turned off, item appears as "Unavailable" on POS'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  disabled={isCategoryInactive}
+                  onClick={() => !isCategoryInactive && setFormIsAvailable(!formIsAvailable)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+                    isCategoryInactive
+                      ? 'bg-zinc-200 cursor-not-allowed opacity-60'
+                      : formIsAvailable
+                      ? 'bg-emerald-500 cursor-pointer'
+                      : 'bg-zinc-300 cursor-pointer'
+                  }`}
+                  title={isCategoryInactive ? 'Category is disabled' : ''}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                      !isCategoryInactive && formIsAvailable ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            )
+          })()}
+
 
           {/* Actions Footer */}
           <div className="flex items-center justify-end space-x-2 pt-3 border-t border-zinc-100">

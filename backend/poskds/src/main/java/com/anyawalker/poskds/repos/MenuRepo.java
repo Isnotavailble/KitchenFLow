@@ -11,10 +11,29 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+import com.anyawalker.poskds.models.CategoryEntity;
+import org.springframework.data.jpa.repository.Modifying;
+
 @Repository
 public interface MenuRepo extends JpaRepository<@NonNull MenuEntity,@NonNull Integer> {
     List<MenuEntity> findAllByIdInAndIsAvailableTrue(List<Integer> menuIdList);
     List<MenuEntity> findAllByIdInAndIsAvailableFalse(List<Integer> menuIdList);
+    long countByCategoryEntity_Id(Integer categoryId);
+    List<MenuEntity> findByCategoryEntity_Id(Integer categoryId);
+
+    @Modifying
+    @Query("UPDATE MenuEntity m SET m.isAvailable = false WHERE m.categoryEntity.id = :categoryId")
+    int disableAllMenusByCategoryId(@Param("categoryId") Integer categoryId);
+
+    @Modifying
+    @Query("UPDATE MenuEntity m SET m.categoryEntity = :targetCategory WHERE m.categoryEntity.id = :categoryId")
+    int reassignCategoryForMenus(@Param("categoryId") Integer categoryId, @Param("targetCategory") CategoryEntity targetCategory);
+
+    @Modifying
+    @Query("DELETE FROM MenuEntity m WHERE m.categoryEntity.id = :categoryId")
+    int deleteMenusByCategoryId(@Param("categoryId") Integer categoryId);
+
+
 
     @Query(
         value = """

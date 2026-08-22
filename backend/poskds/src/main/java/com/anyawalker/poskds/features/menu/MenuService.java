@@ -7,6 +7,7 @@ import com.anyawalker.poskds.models.MenuEntity;
 import com.anyawalker.poskds.repos.CategoryRepo;
 import com.anyawalker.poskds.repos.MenuRepo;
 import com.anyawalker.poskds.features.cloudinary.CloudinaryService;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -89,6 +90,9 @@ public class MenuService {
         if (request.categoryId() != null) {
             categoryEntity = categoryRepo.findById(request.categoryId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category not found with id: " + request.categoryId()));
+            if (categoryEntity.isDeleted() && request.isAvailable()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot make menu item available because its category is disabled");
+            }
         }
         MenuEntity entity = request.toEntity(categoryEntity);
         MenuEntity saved = menuRepo.save(entity);
@@ -98,13 +102,16 @@ public class MenuService {
     public MenuDto.Response updateMenu(Integer id, MenuDto.UpdateRequest request) {
         MenuEntity entity = menuRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Menu not found with id: " + id));
-        
-        CategoryEntity categoryEntity = null;
-        if (request.categoryId() != null) {
-            categoryEntity = categoryRepo.findById(request.categoryId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category not found with id: " + request.categoryId()));
+
+        CategoryEntity categoryEntity = request.categoryId() != null
+                ? categoryRepo.findById(request.categoryId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Category not found with id: " + request.categoryId()))
+                : entity.getCategoryEntity();
+
+        if (categoryEntity != null && categoryEntity.isDeleted() && request.isAvailable()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot update menu due to unavailable category '" + categoryEntity.getName() + "' is disabled");
         }
-        
+
         String oldImageId = entity.getImageId();
         request.updateEntity(entity, categoryEntity);
         MenuEntity saved = menuRepo.save(entity);
@@ -116,17 +123,22 @@ public class MenuService {
         return MenuDto.Response.fromEntity(saved);
     }
 
-    public MenuDto.Response toggleMenuItem(Integer id,Boolean toggle){
 
+    public MenuDto.Response toggleMenuItem(Integer id, Boolean toggle) {
         if (id == null || toggle == null)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"menu Id and toggle value is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "menu Id and toggle value is required");
 
         MenuEntity menuEntity = menuRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Menu not found with id: " + id));
 
+        if (toggle && menuEntity.getCategoryEntity() != null && menuEntity.getCategoryEntity().isDeleted()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot toggle menu due to unavailable category '" + menuEntity.getCategoryEntity().getName() + "'");
+        }
+
         menuEntity.setAvailable(toggle);
         return MenuDto.Response.fromEntity(menuRepo.save(menuEntity));
     }
+
 
     public void deleteMenu(Integer id) {
         MenuEntity entity = menuRepo.findById(id)
